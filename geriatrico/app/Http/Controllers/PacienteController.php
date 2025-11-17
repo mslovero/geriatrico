@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Models\Paciente;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+class PacienteController extends Controller
+{
+    // 🔹 Listar pacientes (paginado)
+    public function index(Request $request)
+    {
+        $query = Paciente::with(['habitacion', 'historialMedico', 'medicaciones', 'archivos']);
+
+        // Filtrado por estado si se pasa
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        // Paginación
+        $pacientes = $query->paginate(15);
+
+        return response()->json($pacientes);
+    }
+
+    // 🔹 Crear nuevo paciente
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'nombre' => 'required|string|max:100',
+            'apellido' => 'required|string|max:100',
+            'dni' => 'required|string|unique:pacientes,dni',
+            'fecha_nacimiento' => 'nullable|date',
+            'habitacion_id' => 'nullable|exists:habitaciones,id',
+            'contacto_emergencia' => 'nullable|array',
+            'contacto_emergencia.nombre' => 'required_with:contacto_emergencia|string',
+            'contacto_emergencia.telefono' => 'required_with:contacto_emergencia|string',
+            'medico_cabecera' => 'nullable|string|max:150',
+            'estado' => ['nullable', Rule::in([
+                'activo', 'temporal', 'ausente', 'suspendido', 'alta_medica', 'egresado', 'fallecido'
+            ])],
+        ]);
+
+        $paciente = Paciente::create($data);
+
+        return response()->json($paciente, 201);
+    }
+
+    // 🔹 Mostrar paciente específico
+    public function show(Paciente $paciente)
+    {
+        $paciente->load(['habitacion', 'historialMedico', 'medicaciones', 'archivos']);
+        return response()->json($paciente);
+    }
+
+    // 🔹 Actualizar paciente
+    public function update(Request $request, Paciente $paciente)
+    {
+        $data = $request->validate([
+            'nombre' => 'sometimes|string|max:100',
+            'apellido' => 'sometimes|string|max:100',
+            'dni' => ['sometimes','string',Rule::unique('pacientes','dni')->ignore($paciente->id)],
+            'fecha_nacimiento' => 'sometimes|date',
+            'habitacion_id' => 'sometimes|nullable|exists:habitaciones,id',
+            'contacto_emergencia' => 'sometimes|array',
+            'contacto_emergencia.nombre' => 'required_with:contacto_emergencia|string',
+            'contacto_emergencia.telefono' => 'required_with:contacto_emergencia|string',
+            'medico_cabecera' => 'sometimes|string|max:150',
+            'estado' => ['sometimes', Rule::in([
+                'activo', 'temporal', 'ausente', 'suspendido', 'alta_medica', 'egresado', 'fallecido'
+            ])],
+        ]);
+
+        $paciente->update($data);
+
+        return response()->json($paciente);
+    }
+
+    // 🔹 Eliminar paciente (soft delete)
+    public function destroy(Paciente $paciente)
+    {
+        $paciente->delete();
+        return response()->json(['message' => 'Paciente eliminado correctamente.']);
+    }
+}
