@@ -12,7 +12,7 @@ class PacienteController extends Controller
     // 🔹 Listar pacientes (paginado)
     public function index(Request $request)
     {
-        $query = Paciente::with(['habitacion', 'historialMedico', 'medicaciones', 'archivos']);
+        $query = Paciente::with(['habitacion', 'cama', 'historialMedico', 'medicaciones', 'archivos']);
 
         // Filtrado por estado si se pasa
         if ($request->filled('estado')) {
@@ -34,6 +34,7 @@ class PacienteController extends Controller
             'dni' => 'required|string|unique:pacientes,dni',
             'fecha_nacimiento' => 'nullable|date',
             'habitacion_id' => 'nullable|exists:habitaciones,id',
+            'cama_id' => 'nullable|exists:camas,id',
             'contacto_emergencia' => 'nullable|array',
             'contacto_emergencia.nombre' => 'required_with:contacto_emergencia|string',
             'contacto_emergencia.telefono' => 'required_with:contacto_emergencia|string',
@@ -45,13 +46,18 @@ class PacienteController extends Controller
 
         $paciente = Paciente::create($data);
 
+        // Si se asignó una cama, marcarla como ocupada
+        if (isset($data['cama_id'])) {
+            \App\Models\Cama::where('id', $data['cama_id'])->update(['estado' => 'ocupada']);
+        }
+
         return response()->json($paciente, 201);
     }
 
     // 🔹 Mostrar paciente específico
     public function show(Paciente $paciente)
     {
-        $paciente->load(['habitacion', 'historialMedico', 'medicaciones', 'archivos']);
+        $paciente->load(['habitacion', 'cama', 'historialMedico', 'medicaciones', 'archivos']);
         return response()->json($paciente);
     }
 
@@ -64,6 +70,7 @@ class PacienteController extends Controller
             'dni' => ['sometimes','string',Rule::unique('pacientes','dni')->ignore($paciente->id)],
             'fecha_nacimiento' => 'sometimes|date',
             'habitacion_id' => 'sometimes|nullable|exists:habitaciones,id',
+            'cama_id' => 'sometimes|nullable|exists:camas,id',
             'contacto_emergencia' => 'sometimes|array',
             'contacto_emergencia.nombre' => 'required_with:contacto_emergencia|string',
             'contacto_emergencia.telefono' => 'required_with:contacto_emergencia|string',
@@ -73,7 +80,22 @@ class PacienteController extends Controller
             ])],
         ]);
 
+        // Manejar cambio de cama
+        $camaAnterior = $paciente->cama_id;
+
         $paciente->update($data);
+
+        // Si cambió la cama, actualizar estados
+        if (isset($data['cama_id']) && $data['cama_id'] !== $camaAnterior) {
+            // Liberar cama anterior
+            if ($camaAnterior) {
+                \App\Models\Cama::where('id', $camaAnterior)->update(['estado' => 'libre']);
+            }
+            // Ocupar nueva cama
+            if ($data['cama_id']) {
+                \App\Models\Cama::where('id', $data['cama_id'])->update(['estado' => 'ocupada']);
+            }
+        }
 
         return response()->json($paciente);
     }

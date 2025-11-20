@@ -31,8 +31,13 @@ class CamasController extends Controller
     {
         $validated = $request->validate([
             'habitacion_id' => 'required|exists:habitaciones,id',
-            'numero_cama'   => 'required|string|max:255',
+            'numero_cama'   => 'required|string|max:255|unique:camas,numero_cama',
             'estado'        => 'in:libre,ocupada,mantenimiento',
+        ], [
+            'numero_cama.unique' => 'Ya existe una cama con este número. Los números de cama deben ser únicos y correlativos en todo el sistema.',
+            'habitacion_id.required' => 'Debe seleccionar una habitación.',
+            'habitacion_id.exists' => 'La habitación seleccionada no existe.',
+            'numero_cama.required' => 'El número de cama es obligatorio.',
         ]);
 
         $cama = Cama::create($validated);
@@ -79,8 +84,17 @@ class CamasController extends Controller
 
         $validated = $request->validate([
             'habitacion_id' => 'sometimes|exists:habitaciones,id',
-            'numero_cama'   => 'sometimes|string|max:255',
+            'numero_cama'   => [
+                'sometimes',
+                'string',
+                'max:255',
+                // Validar que el número de cama sea único globalmente, excepto la cama actual
+                \Illuminate\Validation\Rule::unique('camas', 'numero_cama')->ignore($id)
+            ],
             'estado'        => 'sometimes|in:libre,ocupada,mantenimiento',
+        ], [
+            'numero_cama.unique' => 'Ya existe una cama con este número. Los números de cama deben ser únicos y correlativos en todo el sistema.',
+            'habitacion_id.exists' => 'La habitación seleccionada no existe.',
         ]);
 
         $cama->update($validated);

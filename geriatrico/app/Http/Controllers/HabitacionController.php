@@ -2,64 +2,98 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\habitacion;
+use App\Models\Habitacion;
 use Illuminate\Http\Request;
 
 class HabitacionController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Mostrar todas las habitaciones.
      */
     public function index()
     {
-        //
+        $habitaciones = Habitacion::withCount(['cama as camas_totales', 'camasOcupadas as camas_ocupadas'])
+            ->get();
+
+        return response()->json($habitaciones, 200);
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Guardar una nueva habitación.
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'numero' => 'required|string|max:255|unique:habitaciones,numero',
+            'capacidad' => 'required|integer|min:1',
+        ]);
+
+        $habitacion = Habitacion::create($validated);
+
+        return response()->json([
+            'message' => 'Habitación creada correctamente',
+            'data' => $habitacion
+        ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * Mostrar una habitación específica.
      */
-    public function show(habitacion $habitacion)
+    public function show($id)
     {
-        //
+        $habitacion = Habitacion::with('cama')->find($id);
+
+        if (!$habitacion) {
+            return response()->json(['message' => 'Habitación no encontrada'], 404);
+        }
+
+        return response()->json($habitacion);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Actualizar una habitación existente.
      */
-    public function edit(habitacion $habitacion)
+    public function update(Request $request, $id)
     {
-        //
+        $habitacion = Habitacion::find($id);
+
+        if (!$habitacion) {
+            return response()->json(['message' => 'Habitación no encontrada'], 404);
+        }
+
+        $validated = $request->validate([
+            'numero' => 'sometimes|string|max:255|unique:habitaciones,numero,' . $id,
+            'capacidad' => 'sometimes|integer|min:1',
+        ]);
+
+        $habitacion->update($validated);
+
+        return response()->json([
+            'message' => 'Habitación actualizada correctamente',
+            'data' => $habitacion
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Eliminar una habitación.
      */
-    public function update(Request $request, habitacion $habitacion)
+    public function destroy($id)
     {
-        //
-    }
+        $habitacion = Habitacion::find($id);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(habitacion $habitacion)
-    {
-        //
+        if (!$habitacion) {
+            return response()->json(['message' => 'Habitación no encontrada'], 404);
+        }
+
+        // Verificar si tiene camas asociadas
+        if ($habitacion->cama()->count() > 0) {
+            return response()->json([
+                'message' => 'No se puede eliminar la habitación porque tiene camas asociadas'
+            ], 400);
+        }
+
+        $habitacion->delete();
+
+        return response()->json(['message' => 'Habitación eliminada correctamente']);
     }
 }

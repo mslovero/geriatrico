@@ -23,7 +23,11 @@ export const get = async (endpoint) => {
 
 export const post = async (endpoint, data) => {
   try {
-    const response = await api.post(endpoint, data);
+    const config = {};
+    if (data instanceof FormData) {
+      config.headers = { "Content-Type": "multipart/form-data" };
+    }
+    const response = await api.post(endpoint, data, config);
     return response.data;
   } catch (error) {
     console.error("❌ Error en POST:", error);
@@ -33,7 +37,11 @@ export const post = async (endpoint, data) => {
 
 export const put = async (endpoint, data) => {
   try {
-    const response = await api.put(endpoint, data);
+    const config = {};
+    if (data instanceof FormData) {
+      config.headers = { "Content-Type": "multipart/form-data" };
+    }
+    const response = await api.put(endpoint, data, config);
     return response.data;
   } catch (error) {
     console.error("❌ Error en PUT:", error);
