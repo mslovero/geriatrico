@@ -42,7 +42,7 @@ EXPOSE 80
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
-RUN apt-get install -y dos2unix && dos2unix /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set entrypoint
 ENTRYPOINT ["docker-entrypoint.sh"]
