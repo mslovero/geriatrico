@@ -1,8 +1,13 @@
-version: '3.8'
+
 
 services:
   laravel.test:
-    image: sail-8.4/app # Imagen oficial preconstruida de Sail
+    build:
+      context: ./geriatrico/vendor/laravel/sail/runtimes/8.4
+      dockerfile: Dockerfile
+      args:
+        WWWGROUP: '${WWWGROUP}'
+    image: sail-8.4/app
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     ports:
