@@ -47,6 +47,10 @@ const Layout = () => {
     { path: "/archivos", label: "Archivos", icon: "bi-folder-fill" },
   ];
 
+  if (user?.role === 'admin') {
+    navItems.push({ path: '/usuarios', label: 'Usuarios', icon: 'bi-people-fill' });
+  }
+
   return (
     <div className="d-flex min-vh-100 position-relative">
       {/* Sidebar (Drawer) */}

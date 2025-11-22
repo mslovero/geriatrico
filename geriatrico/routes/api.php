@@ -14,9 +14,10 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
-Route::post('/register', [App\Http\Controllers\AuthController::class, 'register']);
 Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->middleware('auth:sanctum');
+
+// 🔹  (Solo Admin)
+Route::apiResource('users', App\Http\Controllers\UserController::class)->middleware('auth:sanctum');
 
 // 🔹 Pacientes
 Route::apiResource('pacientes', PacienteController::class);

@@ -50,9 +50,7 @@ export default function Login() {
                     </div>
                     {error && <div className="alert alert-danger">{error}</div>}
                     <button type="submit" className="btn btn-primary w-100 mb-3">Ingresar</button>
-                    <div className="text-center">
-                        <Link to="/register" className="text-decoration-none">¿No tienes cuenta? Regístrate</Link>
-                    </div>
+
                 </form>
             </div>
         </div>

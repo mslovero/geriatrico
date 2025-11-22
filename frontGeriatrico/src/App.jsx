@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
-import Pacient from "./pages/pacient";
+import Pacientes from "./pages/pacient";
 import Habitaciones from "./pages/Habitaciones";
 import Camas from "./pages/Camas";
 import Medicaciones from "./pages/Medicaciones";
@@ -17,7 +17,7 @@ import "./App.css";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Usuarios from "./pages/Usuarios";
 import { Navigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {
@@ -34,7 +34,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+
           <Route
             path="/"
             element={
@@ -44,18 +44,19 @@ function App() {
             }
           >
             <Route index element={<Dashboard />} />
-            <Route path="pacientes" element={<Pacient />} />
+            <Route path="pacientes" element={<Pacientes />} />
             <Route path="pacientes/:id/ficha" element={<FichaPaciente />} />
             <Route path="habitaciones" element={<Habitaciones />} />
             <Route path="camas" element={<Camas />} />
             <Route path="medicaciones" element={<Medicaciones />} />
-            <Route path="administracion-medicamentos" element={<AdministracionMedicamentos />} />
+            <Route path="registro-medicaciones" element={<AdministracionMedicamentos />} />
             <Route path="incidencias" element={<Incidencias />} />
             <Route path="nutricion" element={<Nutricion />} />
             <Route path="turnos" element={<Turnos />} />
             <Route path="signos-vitales" element={<SignosVitales />} />
-            <Route path="historial" element={<HistorialMedico />} />
+            <Route path="historial-medico" element={<HistorialMedico />} />
             <Route path="archivos" element={<Archivos />} />
+            <Route path="usuarios" element={<Usuarios />} />
           </Route>
         </Routes>
       </BrowserRouter>
