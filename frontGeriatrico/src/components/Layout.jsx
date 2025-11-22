@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { useAuth } from '../context/AuthContext';
 
 const Layout = () => {
   const location = useLocation();
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const { logout } = useAuth();
 
   const isActive = (path) => {
     return location.pathname === path ||
@@ -13,6 +15,7 @@ const Layout = () => {
   };
 
   const navItems = [
+    { path: '/', label: 'Dashboard', icon: 'bi-speedometer2' },
     { path: '/pacientes', label: 'Pacientes', icon: 'bi-people-fill' },
     { path: '/habitaciones', label: 'Habitaciones', icon: 'bi-house-door-fill' },
     { path: '/camas', label: 'Camas', icon: 'bi-hospital' },
@@ -67,6 +70,16 @@ const Layout = () => {
                   </Link>
                 </li>
               ))}
+              <li className="nav-item ms-lg-3 mt-2 mt-lg-0">
+                <button
+                  onClick={logout}
+                  className="btn btn-outline-light w-100 d-flex align-items-center justify-content-center"
+                  style={{ border: '1px solid rgba(255,255,255,0.5)' }}
+                >
+                  <i className="bi bi-box-arrow-right me-2"></i>
+                  Salir
+                </button>
+              </li>
             </ul>
           </div>
         </div>

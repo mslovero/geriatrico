@@ -1,17 +1,24 @@
-import React from 'react';
-import CrudView from '../components/CrudView';
+import React from "react";
+import CrudView from "../components/CrudView";
+import { useAuth } from "../context/AuthContext";
 
 export default function Habitaciones() {
-    const columns = [
-        { key: 'numero', label: 'Número de Habitación' },
-        { key: 'capacidad', label: 'Capacidad' },
-    ];
+  const { user } = useAuth();
+  const canManage = user?.role === "admin" || user?.role === "administrativo";
 
-    return (
-        <CrudView
-            endpoint="/habitaciones"
-            columns={columns}
-            title="Gestión de Habitaciones"
-        />
-    );
+  const columns = [
+    { key: "numero", label: "Número" },
+    { key: "capacidad", label: "Capacidad" },
+  ];
+
+  return (
+    <CrudView
+      endpoint="/habitaciones"
+      columns={columns}
+      title="Gestión de Habitaciones"
+      canCreate={canManage}
+      canEdit={canManage}
+      canDelete={user?.role === "admin"}
+    />
+  );
 }

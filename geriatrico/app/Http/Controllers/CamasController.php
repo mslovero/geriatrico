@@ -39,6 +39,20 @@ class CamasController extends Controller
             'habitacion_id.exists' => 'La habitación seleccionada no existe.',
             'numero_cama.required' => 'El número de cama es obligatorio.',
         ]);
+        $habitacion = \App\Models\Habitacion::find($validated['habitacion_id']);
+        if (!$habitacion) {
+            return response()->json([
+                'message' => 'La habitación seleccionada no existe.'
+            ], 404);
+        }
+
+        $camasActuales = Cama::where('habitacion_id', $habitacion->id)->count();
+
+        if ($camasActuales >= $habitacion->capacidad) {
+            return response()->json([
+                'message' => 'La habitación ya alcanzó su capacidad máxima. No se pueden agregar más camas.'
+            ], 422);
+        }
 
         $cama = Cama::create($validated);
 

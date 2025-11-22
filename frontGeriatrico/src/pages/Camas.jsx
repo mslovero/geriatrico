@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import CrudView from '../components/CrudView';
 import { get } from '../api/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Camas() {
     const [habitaciones, setHabitaciones] = useState([]);
@@ -31,11 +32,17 @@ export default function Camas() {
         { key: 'estado', label: 'Estado' },
     ];
 
+    const { user } = useAuth();
+    const canManage = user?.role === 'admin' || user?.role === 'administrativo';
+
     return (
         <CrudView
             endpoint="/camas"
             columns={columns}
             title="Gestión de Camas"
+            canCreate={canManage}
+            canEdit={canManage}
+            canDelete={user?.role === 'admin'}
             customFields={{
                 habitacion_id: ({ name, value, onChange, className }) => (
                     <select name={name} value={value} onChange={onChange} className={className} required>

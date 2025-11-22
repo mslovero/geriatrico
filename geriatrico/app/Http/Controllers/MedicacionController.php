@@ -30,7 +30,7 @@ class MedicacionController extends Controller
     {
         $request->validate([
             'nombre' => 'required|string|max:255',
-            'paciente_id' => 'required|exists:pacientes, id',
+            'paciente_id' => 'required|exists:pacientes,id',
         ]);
         $medicacion = Medicacion::create($request->all());
         return response()-> json($medicacion, 201);

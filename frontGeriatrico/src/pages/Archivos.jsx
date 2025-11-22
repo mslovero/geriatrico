@@ -1,19 +1,34 @@
 import React from 'react';
 import CrudView from '../components/CrudView';
+import PatientSelect from '../components/PatientSelect';
+import { useAuth } from '../context/AuthContext';
 
 export default function Archivos() {
     const columns = [
-        { key: 'paciente_id', label: 'ID Paciente' },
-        { key: 'historial_medico_id', label: 'ID Historial' },
+        { 
+            key: 'paciente_id', 
+            label: 'Paciente',
+            render: (value, item) => item.paciente ? `${item.paciente.nombre} ${item.paciente.apellido}` : 'General'
+        },
         { key: 'tipo', label: 'Tipo de Archivo' },
-        { key: 'archivo', label: 'Archivo' },
+        { 
+            key: 'ruta_archivo', 
+            label: 'Archivo',
+            render: (value) => <a href={`http://localhost:8000/storage/${value}`} target="_blank" rel="noopener noreferrer">Ver Archivo</a>
+        },
     ];
+
+    const { user } = useAuth();
+    const canManage = user?.role === 'admin' || user?.role === 'administrativo' || user?.role === 'medico';
 
     return (
         <CrudView
             endpoint="/archivos-adjuntos"
             columns={columns}
-            title="Gestión de Archivos"
+            title="Archivos Adjuntos"
+            canCreate={canManage}
+            canEdit={canManage}
+            canDelete={user?.role === 'admin'}
             transformData={(form) => {
                 const formData = new FormData();
                 Object.keys(form).forEach((key) => {
@@ -24,6 +39,7 @@ export default function Archivos() {
                 return formData;
             }}
             customFields={{
+                paciente_id: (props) => <PatientSelect {...props} required={false} />,
                 archivo: ({ name, onChange, className }) => (
                     <input
                         type="file"
