@@ -54,6 +54,26 @@ class Paciente extends Model
         return $this->hasMany(ArchivoAdjunto::class);
     }
 
+    public function signosVitales()
+    {
+        return $this->hasMany(SignoVital::class);
+    }
+
+    public function dietas()
+    {
+        return $this->hasMany(Dieta::class);
+    }
+
+    public function incidencias()
+    {
+        return $this->hasMany(Incidencia::class);
+    }
+
+    public function turnosMedicos()
+    {
+        return $this->hasMany(TurnoMedico::class);
+    }
+
     // 🔹 Accessor: nombre completo
     public function getNombreCompletoAttribute()
     {
@@ -75,9 +95,4 @@ class Paciente extends Model
     {
         return $query->where('estado', $estado);
     }
-
-    public function Medicacion()
-{
-    return $this->hasMany(Medicacion::class);
-}
 }

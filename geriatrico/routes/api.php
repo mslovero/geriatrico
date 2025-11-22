@@ -16,6 +16,7 @@ Route::get('/user', function (Request $request) {
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
 Route::post('/register', [App\Http\Controllers\AuthController::class, 'register']);
 Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->middleware('auth:sanctum');
 
 // 🔹 Pacientes
 Route::apiResource('pacientes', PacienteController::class);
@@ -32,3 +33,8 @@ Route::apiResource('historiales-medicos', HistorialMedicoController::class);
 // 🔹 Archivos Adjuntos
 Route::apiResource('archivos-adjuntos', ArchivoAdjuntoController::class);
 Route::apiResource('medicaciones', MedicacionController::class);
+Route::apiResource('signos-vitales', \App\Http\Controllers\SignoVitalController::class);
+Route::apiResource('registro-medicaciones', \App\Http\Controllers\RegistroMedicacionController::class);
+Route::apiResource('incidencias', \App\Http\Controllers\IncidenciaController::class);
+Route::apiResource('dietas', \App\Http\Controllers\DietaController::class);
+Route::apiResource('turnos-medicos', \App\Http\Controllers\TurnoMedicoController::class);

@@ -16,6 +16,7 @@ export default function CrudView({
   canCreate = true,
   canEdit = true,
   canDelete = true,
+  customActions,
 }) {
   const [data, setData] = useState([]);
   const [form, setForm] = useState({});
@@ -270,7 +271,7 @@ export default function CrudView({
                     {columns.map((col) => (
                       <th key={col.key}>{col.label}</th>
                     ))}
-                    {(canEdit || canDelete) && (
+                    {(canEdit || canDelete || customActions) && (
                       <th style={{ width: "150px" }}>Acciones</th>
                     )}
                   </tr>
@@ -309,9 +310,10 @@ export default function CrudView({
                               : item[col.key]}
                           </td>
                         ))}
-                        {(canEdit || canDelete) && (
+                        {(canEdit || canDelete || customActions) && (
                           <td className="text-center">
                             <div className="d-flex justify-content-center gap-2">
+                              {customActions && customActions(item)}
                               {canEdit && (
                                 <button
                                   onClick={() => handleEdit(item)}

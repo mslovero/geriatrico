@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import CrudView from "../components/CrudView";
+import { useNavigate } from "react-router-dom";
 import { get } from "../api/api";
+import { useAuth } from "../context/AuthContext";
 
-export default function Pacient() {
+export default function Pacientes() {
+  const navigate = useNavigate();
   const [habitaciones, setHabitaciones] = useState([]);
   const [camas, setCamas] = useState([]);
   const [camasFiltradas, setCamasFiltradas] = useState([]);
@@ -24,7 +27,6 @@ export default function Pacient() {
     fetchData();
   }, []);
 
-  // Filtrar camas cuando se carga un paciente para editar
   const onEditPaciente = (paciente) => {
     setPacienteEditando(paciente);
     if (paciente.habitacion_id && camas.length > 0) {
@@ -67,33 +69,50 @@ export default function Pacient() {
     },
   ];
 
+  const { user } = useAuth();
+  const canManage = user?.role === "admin" || user?.role === "administrativo";
+
   return (
     <CrudView
       endpoint="/pacientes"
       columns={columns}
       title="Gestión de Pacientes"
       onEdit={onEditPaciente}
+      canCreate={canManage}
+      canEdit={canManage}
+      canDelete={user?.role === "admin"}
       customFields={{
-        habitacion_id: ({ name, value, onChange, className, form, setForm }) => (
+        habitacion_id: ({
+          name,
+          value,
+          onChange,
+          className,
+          form,
+          setForm,
+        }) => (
           <select
             name={name}
-            value={value}
+            value={value || ""}
             onChange={(e) => {
               onChange(e);
-              // Filtrar camas de la habitación seleccionada
               const habitacionId = e.target.value;
               if (habitacionId) {
                 const camasFiltradas = camas.filter(
-                  (cama) => cama.habitacion_id === parseInt(habitacionId) &&
-                  (cama.estado === "libre" || cama.id === form.cama_id)
+                  (cama) =>
+                    cama.habitacion_id === parseInt(habitacionId) &&
+                    (cama.estado === "libre" ||
+                      (form && cama.id === form.cama_id))
                 );
                 setCamasFiltradas(camasFiltradas);
               } else {
                 setCamasFiltradas([]);
               }
-              // Limpiar selección de cama solo si cambiamos a una habitación diferente
-              if (e.target.value !== value) {
-                setForm({ ...form, habitacion_id: e.target.value, cama_id: "" });
+              if (form && e.target.value !== value) {
+                setForm({
+                  ...form,
+                  habitacion_id: e.target.value,
+                  cama_id: "",
+                });
               }
             }}
             className={className}
@@ -101,7 +120,8 @@ export default function Pacient() {
             <option value="">Seleccionar habitación</option>
             {habitaciones.map((habitacion) => (
               <option key={habitacion.id} value={habitacion.id}>
-                Habitación {habitacion.numero} (Capacidad: {habitacion.capacidad})
+                Habitación {habitacion.numero} (Capacidad:{" "}
+                {habitacion.capacidad})
               </option>
             ))}
           </select>
@@ -109,13 +129,13 @@ export default function Pacient() {
         cama_id: ({ name, value, onChange, className, form }) => (
           <select
             name={name}
-            value={value}
+            value={value || ""}
             onChange={onChange}
             className={className}
-            disabled={!form.habitacion_id}
+            disabled={!form || !form.habitacion_id}
           >
             <option value="">
-              {form.habitacion_id
+              {form && form.habitacion_id
                 ? "Seleccionar cama"
                 : "Primero seleccione una habitación"}
             </option>
@@ -129,7 +149,7 @@ export default function Pacient() {
         estado: ({ name, value, onChange, className }) => (
           <select
             name={name}
-            value={value}
+            value={value || ""}
             onChange={onChange}
             className={className}
           >
@@ -143,45 +163,60 @@ export default function Pacient() {
             )}
           </select>
         ),
-        contacto_emergencia: ({ form, setForm }) => (
-          <div className="row">
-            <div className="col-md-6">
-              <input
-                type="text"
-                placeholder="Nombre del contacto"
-                className="form-control mb-2"
-                value={form.contacto_emergencia?.nombre || ""}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    contacto_emergencia: {
-                      ...form.contacto_emergencia,
-                      nombre: e.target.value,
-                    },
-                  })
-                }
-              />
+        contacto_emergencia: ({ form, setForm }) => {
+          if (!form) return null;
+          const contacto = form.contacto_emergencia || {};
+          return (
+            <div className="row">
+              <div className="col-md-6">
+                <label className="form-label small">Nombre Contacto</label>
+                <input
+                  type="text"
+                  placeholder="Nombre"
+                  className="form-control mb-2"
+                  value={contacto.nombre || ""}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      contacto_emergencia: {
+                        ...contacto,
+                        nombre: e.target.value,
+                      },
+                    })
+                  }
+                />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label small">Teléfono Contacto</label>
+                <input
+                  type="text"
+                  placeholder="Teléfono"
+                  className="form-control"
+                  value={contacto.telefono || ""}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      contacto_emergencia: {
+                        ...contacto,
+                        telefono: e.target.value,
+                      },
+                    })
+                  }
+                />
+              </div>
             </div>
-            <div className="col-md-6">
-              <input
-                type="text"
-                placeholder="Teléfono del contacto"
-                className="form-control"
-                value={form.contacto_emergencia?.telefono || ""}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    contacto_emergencia: {
-                      ...form.contacto_emergencia,
-                      telefono: e.target.value,
-                    },
-                  })
-                }
-              />
-            </div>
-          </div>
-        ),
+          );
+        },
       }}
+      customActions={(item) => (
+        <button
+          className="btn btn-sm btn-info text-white me-1"
+          onClick={() => navigate(`/pacientes/${item.id}/ficha`)}
+          title="Ver Ficha Médica"
+        >
+          <i className="bi bi-file-earmark-medical-fill"></i>
+        </button>
+      )}
     />
   );
 }

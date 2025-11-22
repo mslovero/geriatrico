@@ -57,7 +57,17 @@ class PacienteController extends Controller
     // 🔹 Mostrar paciente específico
     public function show(Paciente $paciente)
     {
-        $paciente->load(['habitacion', 'cama', 'historialMedico', 'medicaciones', 'archivos']);
+        $paciente->load([
+            'habitacion', 
+            'cama', 
+            'historialMedico', 
+            'medicaciones', 
+            'archivos',
+            'signosVitales',
+            'dietas',
+            'incidencias',
+            'turnosMedicos'
+        ]);
         return response()->json($paciente);
     }
 
