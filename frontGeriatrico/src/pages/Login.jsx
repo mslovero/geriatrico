@@ -37,7 +37,7 @@ export default function Login() {
             <div className="position-absolute rounded-circle bg-info opacity-10" 
                  style={{ width: '400px', height: '400px', bottom: '-50px', left: '-50px', filter: 'blur(60px)', zIndex: 0 }}></div>
 
-            <div className="card card-glass shadow-xl p-5 fade-in position-relative" style={{ maxWidth: '450px', width: '100%', zIndex: 1, border: '1px solid rgba(255,255,255,0.8)' }}>
+            <div className="card card-glass shadow-xl p-5 position-relative" style={{ maxWidth: '450px', width: '100%', zIndex: 1, border: '1px solid rgba(255,255,255,0.8)' }}>
                 <div className="text-center mb-5">
                     <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-gradient-primary text-white mb-3 shadow-lg" 
                          style={{ width: '80px', height: '80px' }}>
