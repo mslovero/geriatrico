@@ -3,6 +3,8 @@ import CrudView from '../components/CrudView';
 import PatientSelect from '../components/PatientSelect';
 import { useAuth } from '../context/AuthContext';
 
+import { STORAGE_URL } from '../api/api';
+
 export default function Archivos() {
     const columns = [
         { 
@@ -14,7 +16,7 @@ export default function Archivos() {
         { 
             key: 'ruta_archivo', 
             label: 'Archivo',
-            render: (value) => <a href={`http://localhost:8000/storage/${value}`} target="_blank" rel="noopener noreferrer">Ver Archivo</a>
+            render: (value) => <a href={`${STORAGE_URL}/${value}`} target="_blank" rel="noopener noreferrer">Ver Archivo</a>
         },
     ];
 

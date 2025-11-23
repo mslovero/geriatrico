@@ -11,6 +11,11 @@ export default defineConfig({
         target: 'http://laravel.test:80',
         changeOrigin: true,
         secure: false
+      },
+      '/storage': {
+        target: 'http://laravel.test:80',
+        changeOrigin: true,
+        secure: false
       }
     }
   }

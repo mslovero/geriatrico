@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // 🔹 URL base de tu backend Laravel
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+export const API_URL = import.meta.env.VITE_API_URL || "/api";
+export const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || "/storage";
 
 // 🔹 Instancia de Axios
 const api = axios.create({
