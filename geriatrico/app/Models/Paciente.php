@@ -39,7 +39,7 @@ class Paciente extends Model
     }
    
 
-    public function historialMedico()
+    public function historial_medico()
     {
         return $this->hasMany(HistorialMedico::class);
     }

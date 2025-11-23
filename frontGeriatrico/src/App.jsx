@@ -49,7 +49,7 @@ function App() {
             <Route path="habitaciones" element={<Habitaciones />} />
             <Route path="camas" element={<Camas />} />
             <Route path="medicaciones" element={<Medicaciones />} />
-            <Route path="registro-medicaciones" element={<AdministracionMedicamentos />} />
+            <Route path="administracion-medicamentos" element={<AdministracionMedicamentos />} />
             <Route path="incidencias" element={<Incidencias />} />
             <Route path="nutricion" element={<Nutricion />} />
             <Route path="turnos" element={<Turnos />} />

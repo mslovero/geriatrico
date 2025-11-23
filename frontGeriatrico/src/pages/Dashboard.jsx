@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { get } from '../api/api';
-import { PeopleFill, Hospital, Capsule, FileMedical } from 'react-bootstrap-icons';
+import { PeopleFill, Hospital, Capsule, FileMedical, Activity, CalendarCheck } from 'react-bootstrap-icons';
+import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
     const [stats, setStats] = useState({
@@ -57,84 +58,127 @@ export default function Dashboard() {
         );
     }
 
-    const StatCard = ({ title, value, icon, color, subtitle }) => (
-        <div className="col-md-3 mb-4">
-            <div className="card shadow-sm border-0 h-100 fade-in" style={{ borderLeft: `5px solid ${color}` }}>
-                <div className="card-body">
-                    <div className="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 className="text-muted text-uppercase mb-2" style={{ fontSize: '0.8rem', letterSpacing: '1px' }}>{title}</h6>
-                            <h2 className="mb-0 fw-bold" style={{ color: '#2c3e50' }}>{value}</h2>
-                            {subtitle && <small className="text-muted">{subtitle}</small>}
+    const StatCard = ({ title, value, icon, colorClass, subtitle, link }) => (
+        <div className="col-md-6 col-lg-3 mb-4">
+            <Link to={link} className="text-decoration-none">
+                <div className="card h-100 border-0 shadow-sm hover-lift overflow-hidden position-relative">
+                    <div className={`position-absolute top-0 end-0 p-3 opacity-10 text-${colorClass}`}>
+                        {React.cloneElement(icon, { size: 80 })}
+                    </div>
+                    <div className="card-body position-relative z-10">
+                        <div className={`d-inline-flex align-items-center justify-content-center p-3 rounded-3 bg-${colorClass} bg-opacity-10 text-${colorClass} mb-3`}>
+                            {React.cloneElement(icon, { size: 24 })}
                         </div>
-                        <div className="rounded-circle p-3 d-flex align-items-center justify-content-center" 
-                             style={{ backgroundColor: `${color}20`, color: color, width: '60px', height: '60px' }}>
-                            {icon}
-                        </div>
+                        <h6 className="text-muted text-uppercase fw-bold small letter-spacing-1 mb-1">{title}</h6>
+                        <h2 className="display-6 fw-bold text-dark mb-0">{value}</h2>
+                        {subtitle && <div className="mt-2 small text-muted d-flex align-items-center gap-1">
+                            <i className="bi bi-info-circle"></i> {subtitle}
+                        </div>}
+                    </div>
+                    <div className={`card-footer bg-transparent border-0 pt-0 pb-3`}>
+                        <span className={`badge bg-${colorClass} bg-opacity-10 text-${colorClass} rounded-pill px-3`}>
+                            Ver detalles <i className="bi bi-arrow-right ms-1"></i>
+                        </span>
                     </div>
                 </div>
-            </div>
+            </Link>
         </div>
     );
 
     return (
-        <div className="container py-5">
-            <div className="mb-5">
-                <h1 className="display-5 fw-bold mb-2" style={{ color: '#2c5f7e' }}>Panel de Control</h1>
-                <p className="text-muted">Resumen general del estado del geriátrico.</p>
+        <div className="container-fluid py-2">
+            <div className="d-flex justify-content-between align-items-end mb-5">
+                <div>
+                    <h1 className="fw-bold text-gradient mb-2">Panel de Control</h1>
+                    <p className="text-muted mb-0">Bienvenido al sistema de gestión integral.</p>
+                </div>
+                <div className="d-none d-md-block">
+                    <Link to="/pacientes" className="btn btn-primary shadow-sm">
+                        <i className="bi bi-plus-lg me-2"></i> Nuevo Ingreso
+                    </Link>
+                </div>
             </div>
 
-            <div className="row">
+            <div className="row g-4 mb-5">
                 <StatCard 
                     title="Pacientes Activos" 
                     value={stats.pacientes} 
-                    icon={<PeopleFill size={24} />} 
-                    color="#0d6efd" 
+                    icon={<PeopleFill />} 
+                    colorClass="primary" 
+                    subtitle="Total registrados"
+                    link="/pacientes"
                 />
                 <StatCard 
                     title="Camas Disponibles" 
                     value={stats.camasLibres} 
-                    icon={<Hospital size={24} />} 
-                    color="#198754" 
-                    subtitle={`${stats.camasOcupadas} ocupadas`}
+                    icon={<Hospital />} 
+                    colorClass="success" 
+                    subtitle={`${stats.camasOcupadas} ocupadas actualmente`}
+                    link="/camas"
                 />
                 <StatCard 
                     title="Medicaciones" 
                     value={stats.medicaciones} 
-                    icon={<Capsule size={24} />} 
-                    color="#dc3545" 
+                    icon={<Capsule />} 
+                    colorClass="danger" 
+                    subtitle="En inventario"
+                    link="/medicaciones"
                 />
                 <StatCard 
                     title="Historiales" 
                     value={stats.historiales} 
-                    icon={<FileMedical size={24} />} 
-                    color="#ffc107" 
+                    icon={<FileMedical />} 
+                    colorClass="warning" 
+                    subtitle="Registros médicos"
+                    link="/historial-medico"
                 />
             </div>
 
-            <div className="row mt-4">
-                <div className="col-md-6 mb-4">
-                    <div className="card shadow-sm border-0">
-                        <div className="card-header bg-white py-3">
-                            <h5 className="mb-0 fw-bold">Ocupación</h5>
+            <div className="row g-4">
+                <div className="col-lg-8">
+                    <div className="card border-0 shadow-sm h-100">
+                        <div className="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                            <h5 className="mb-0 fw-bold">Ocupación del Centro</h5>
+                            <button className="btn btn-sm btn-light rounded-circle"><i className="bi bi-three-dots-vertical"></i></button>
                         </div>
-                        <div className="card-body">
-                            <div className="progress" style={{ height: '25px' }}>
+                        <div className="card-body px-4">
+                            <div className="d-flex align-items-center justify-content-between mb-2">
+                                <span className="text-muted small fw-bold text-uppercase">Capacidad Total</span>
+                                <span className="fw-bold">{stats.camasLibres + stats.camasOcupadas} Camas</span>
+                            </div>
+                            <div className="progress mb-4" style={{ height: '12px', borderRadius: '6px' }}>
                                 <div 
-                                    className="progress-bar bg-success" 
-                                    role="progressbar" 
-                                    style={{ width: `${(stats.camasLibres / (stats.camasLibres + stats.camasOcupadas || 1)) * 100}%` }}
-                                >
-                                    Libres ({stats.camasLibres})
-                                </div>
-                                <div 
-                                    className="progress-bar bg-danger" 
+                                    className="progress-bar bg-gradient-primary" 
                                     role="progressbar" 
                                     style={{ width: `${(stats.camasOcupadas / (stats.camasLibres + stats.camasOcupadas || 1)) * 100}%` }}
-                                >
-                                    Ocupadas ({stats.camasOcupadas})
+                                ></div>
+                            </div>
+                            
+                            <div className="row text-center mt-4">
+                                <div className="col-6 border-end">
+                                    <h3 className="fw-bold text-success mb-0">{stats.camasLibres}</h3>
+                                    <small className="text-muted text-uppercase">Libres</small>
+                                </div>
+                                <div className="col-6">
+                                    <h3 className="fw-bold text-primary mb-0">{stats.camasOcupadas}</h3>
+                                    <small className="text-muted text-uppercase">Ocupadas</small>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-lg-4">
+                    <div className="card border-0 shadow-sm h-100 bg-gradient-primary text-white position-relative overflow-hidden">
+                        <div className="position-absolute top-0 end-0 p-3 opacity-25">
+                            <CalendarCheck size={120} />
+                        </div>
+                        <div className="card-body position-relative z-10 d-flex flex-column justify-content-center p-4">
+                            <h4 className="fw-bold mb-3">Agenda del Día</h4>
+                            <p className="mb-4 opacity-75">Revise los turnos y actividades programadas para hoy.</p>
+                            <Link to="/turnos" className="btn btn-light text-primary fw-bold border-0 shadow-sm w-100 py-3">
+                                Ver Calendario <i className="bi bi-arrow-right ms-2"></i>
+                            </Link>
                         </div>
                     </div>
                 </div>

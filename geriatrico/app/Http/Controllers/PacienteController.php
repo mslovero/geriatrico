@@ -12,7 +12,7 @@ class PacienteController extends Controller
     // 🔹 Listar pacientes (paginado)
     public function index(Request $request)
     {
-        $query = Paciente::with(['habitacion', 'cama', 'historialMedico', 'medicaciones', 'archivos']);
+        $query = Paciente::with(['habitacion', 'cama', 'historial_medico', 'medicaciones', 'archivos']);
 
         // Filtrado por estado si se pasa
         if ($request->filled('estado')) {
@@ -60,7 +60,7 @@ class PacienteController extends Controller
         $paciente->load([
             'habitacion', 
             'cama', 
-            'historialMedico', 
+            'historial_medico', 
             'medicaciones', 
             'archivos',
             'signosVitales',
