@@ -257,7 +257,14 @@ export default function CrudView({
                         {col.render
                           ? col.render(item[col.key], item)
                           : col.key.toLowerCase().includes("fecha")
-                          ? new Date(item[col.key]).toLocaleDateString("es-AR")
+                          ? (item[col.key] ? (() => {
+                              // Check if it looks like a simple date YYYY-MM-DD
+                              if (/^\d{4}-\d{2}-\d{2}$/.test(item[col.key])) {
+                                  const [y, m, d] = item[col.key].split('-');
+                                  return new Date(y, m - 1, d).toLocaleDateString("es-AR");
+                              }
+                              return new Date(item[col.key]).toLocaleDateString("es-AR");
+                          })() : "-")
                           : typeof item[col.key] === "object" && item[col.key] !== null
                           ? Object.entries(item[col.key])
                               .map(([k, v]) => `${k}: ${v}`)

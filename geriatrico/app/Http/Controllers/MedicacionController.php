@@ -31,6 +31,10 @@ class MedicacionController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'paciente_id' => 'required|exists:pacientes,id',
+            'tipo' => 'in:diaria,sos',
+            'cantidad_mensual' => 'nullable|integer',
+            'fecha_inicio' => 'nullable|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
         ]);
         $medicacion = Medicacion::create($request->all());
         return response()-> json($medicacion, 201);

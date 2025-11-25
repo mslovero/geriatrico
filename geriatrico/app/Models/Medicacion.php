@@ -15,7 +15,11 @@ class Medicacion extends Model
         'dosis',
         'frecuencia',
          'observaciones',
-        'paciente_id'
+        'paciente_id',
+        'tipo',
+        'cantidad_mensual',
+        'fecha_inicio',
+        'fecha_fin'
 
      ];
 

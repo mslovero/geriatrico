@@ -7,12 +7,12 @@ import Camas from "./pages/Camas";
 import Medicaciones from "./pages/Medicaciones";
 import HistorialMedico from "./pages/HistorialMedico";
 import Archivos from "./pages/Archivos";
-import SignosVitales from './pages/SignosVitales';
-import AdministracionMedicamentos from './pages/AdministracionMedicamentos';
-import Incidencias from './pages/Incidencias';
-import Nutricion from './pages/Nutricion';
-import Turnos from './pages/Turnos';
-import FichaPaciente from './pages/FichaPaciente';
+import SignosVitales from "./pages/SignosVitales";
+import AdministracionMedicamentos from "./pages/AdministracionMedicamentos";
+import Incidencias from "./pages/Incidencias";
+import Nutricion from "./pages/Nutricion";
+import Turnos from "./pages/Turnos";
+import FichaPaciente from "./pages/FichaPaciente";
 import "./App.css";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -48,8 +48,13 @@ function App() {
             <Route path="pacientes/:id/ficha" element={<FichaPaciente />} />
             <Route path="habitaciones" element={<Habitaciones />} />
             <Route path="camas" element={<Camas />} />
-            <Route path="medicaciones" element={<Medicaciones />} />
-            <Route path="administracion-medicamentos" element={<AdministracionMedicamentos />} />
+            {/* Redirección de ruta antigua a nueva */}
+            <Route path="medicaciones" element={<Navigate to="/medicamentos" replace />} />
+            <Route path="medicamentos" element={<Medicaciones />} />
+            <Route
+              path="administracion-medicamentos"
+              element={<AdministracionMedicamentos />}
+            />
             <Route path="incidencias" element={<Incidencias />} />
             <Route path="nutricion" element={<Nutricion />} />
             <Route path="turnos" element={<Turnos />} />

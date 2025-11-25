@@ -33,7 +33,7 @@ Route::apiResource('historiales-medicos', HistorialMedicoController::class);
 
 // 🔹 Archivos Adjuntos
 Route::apiResource('archivos-adjuntos', ArchivoAdjuntoController::class);
-Route::apiResource('medicaciones', MedicacionController::class);
+Route::apiResource('medicamentos', MedicacionController::class);
 Route::apiResource('signos-vitales', \App\Http\Controllers\SignoVitalController::class);
 Route::apiResource('registro-medicaciones', \App\Http\Controllers\RegistroMedicacionController::class);
 Route::apiResource('incidencias', \App\Http\Controllers\IncidenciaController::class);

@@ -32,7 +32,7 @@ const Layout = () => {
       label: "Signos Vitales",
       icon: "bi-heart-pulse-fill",
     },
-    { path: "/medicaciones", label: "Medicaciones", icon: "bi-capsule" },
+    { path: "/medicamentos", label: "Medicamentos", icon: "bi-capsule" },
     {
       path: "/administracion-medicamentos",
       label: "Administración (MAR)",
@@ -194,12 +194,14 @@ const Layout = () => {
           <div className="d-flex align-items-center gap-3">
             <div className="d-none d-md-flex align-items-center text-muted small">
               <i className="bi bi-calendar3 me-2"></i>
-              {new Date().toLocaleDateString("es-ES", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+              <span>
+                {new Date().toLocaleDateString("es-ES", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
             </div>
             <div className="vr d-none d-md-block mx-2"></div>
             <div className="position-relative">
@@ -317,7 +319,7 @@ const Layout = () => {
         </header>
 
         <main
-          className="flex-grow-1 p-4 fade-in position-relative"
+          className="flex-grow-1 p-4 position-relative"
           style={{ overflowY: "auto" }}
         >
           <Outlet />

@@ -21,7 +21,7 @@ export default function AdministracionMedicamentos() {
     const fetchData = async () => {
       try {
         const [resMedicaciones, resEnfermeros, resMedicos] = await Promise.all([
-          get("/medicaciones"),
+          get("/medicamentos"),
           get("/users?role=enfermero"),
           get("/users?role=medico"),
         ]);
@@ -50,7 +50,11 @@ export default function AdministracionMedicamentos() {
       label: "Medicación",
       render: (value, item) => {
         return item.medicacion
-          ? `${item.medicacion.nombre} (${item.medicacion.dosis})`
+          ? `[${
+              item.medicacion.tipo
+                ? item.medicacion.tipo.toUpperCase()
+                : "DIARIA"
+            }] ${item.medicacion.nombre} (${item.medicacion.dosis})`
           : "ID: " + value;
       },
     },
@@ -136,7 +140,8 @@ export default function AdministracionMedicamentos() {
             </option>
             {filteredMedicaciones.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.nombre} - {m.dosis} ({m.frecuencia})
+                [{m.tipo ? m.tipo.toUpperCase() : "DIARIA"}] {m.nombre} -{" "}
+                {m.dosis} ({m.frecuencia})
               </option>
             ))}
           </select>
