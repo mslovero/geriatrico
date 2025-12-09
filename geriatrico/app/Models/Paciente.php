@@ -20,6 +20,7 @@ class Paciente extends Model
          'cama_id',
         'contacto_emergencia',
         'medico_cabecera',
+        'patologias',
         'estado',
     ];
 

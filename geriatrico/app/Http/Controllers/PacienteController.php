@@ -39,6 +39,7 @@ class PacienteController extends Controller
             'contacto_emergencia.nombre' => 'required_with:contacto_emergencia|string',
             'contacto_emergencia.telefono' => 'required_with:contacto_emergencia|string',
             'medico_cabecera' => 'nullable|string|max:150',
+            'patologias' => 'nullable|string',
             'estado' => ['nullable', Rule::in([
                 'activo', 'temporal', 'ausente', 'suspendido', 'alta_medica', 'egresado', 'fallecido'
             ])],
@@ -85,6 +86,7 @@ class PacienteController extends Controller
             'contacto_emergencia.nombre' => 'required_with:contacto_emergencia|string',
             'contacto_emergencia.telefono' => 'required_with:contacto_emergencia|string',
             'medico_cabecera' => 'sometimes|string|max:150',
+            'patologias' => 'sometimes|nullable|string',
             'estado' => ['sometimes', Rule::in([
                 'activo', 'temporal', 'ausente', 'suspendido', 'alta_medica', 'egresado', 'fallecido'
             ])],

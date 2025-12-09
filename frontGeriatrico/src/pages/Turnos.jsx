@@ -48,68 +48,100 @@ export default function Turnos() {
             canCreate={canManage}
             canEdit={canManage}
             canDelete={canDelete}
-            customFields={{
-                paciente_id: (props) => <PatientSelect {...props} />,
-                fecha_hora: ({ name, value, onChange, className }) => (
-                    <input
-                        type="datetime-local"
-                        name={name}
-                        value={value}
-                        onChange={onChange}
-                        className={className}
-                        required
-                    />
-                ),
-                especialidad: ({ name, value, onChange, className }) => (
-                    <input
-                        type="text"
-                        name={name}
-                        value={value}
-                        onChange={onChange}
-                        className={className}
-                        placeholder="Ej: Cardiólogo, Dentista..."
-                        required
-                    />
-                ),
-                profesional: ({ name, value, onChange, className }) => (
-                    <input
-                        type="text"
-                        name={name}
-                        value={value}
-                        onChange={onChange}
-                        className={className}
-                        placeholder="Nombre del médico..."
-                        required
-                    />
-                ),
-                lugar: ({ name, value, onChange, className }) => (
-                    <input
-                        type="text"
-                        name={name}
-                        value={value}
-                        onChange={onChange}
-                        className={className}
-                        placeholder="Dirección o Consultorio..."
-                    />
-                ),
-                estado: ({ name, value, onChange, className }) => (
-                    <select name={name} value={value} onChange={onChange} className={className} required>
-                        <option value="pendiente">Pendiente</option>
-                        <option value="completado">Completado</option>
-                        <option value="cancelado">Cancelado</option>
-                    </select>
-                ),
-                observaciones: ({ name, value, onChange, className }) => (
-                    <textarea
-                        name={name}
-                        value={value}
-                        onChange={onChange}
-                        className={className}
-                        rows="2"
-                        placeholder="Notas adicionales..."
-                    />
-                ),
-            }}
+      formFields={[
+        { key: 'paciente_id', colSize: 12 },
+        { key: 'fecha_hora', colSize: 6 },
+        { key: 'estado', colSize: 6 },
+        { key: 'especialidad', colSize: 6 },
+        { key: 'profesional', colSize: 6 },
+        { key: 'lugar', colSize: 12 },
+        { key: 'observaciones', colSize: 12 }
+      ]}
+      customFields={{
+        paciente_id: (props) => (
+          <div>
+            <label className="form-label fw-bold">Paciente *</label>
+            <PatientSelect {...props} />
+          </div>
+        ),
+        fecha_hora: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Fecha y Hora *</label>
+            <input
+              type="datetime-local"
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              required
+            />
+          </div>
+        ),
+        especialidad: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Especialidad *</label>
+            <input
+              type="text"
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              placeholder="Ej: Cardiólogo, Dentista..."
+              required
+            />
+          </div>
+        ),
+        profesional: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Profesional *</label>
+            <input
+              type="text"
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              placeholder="Nombre del médico..."
+              required
+            />
+          </div>
+        ),
+        lugar: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Lugar</label>
+            <input
+              type="text"
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              placeholder="Dirección o Consultorio..."
+            />
+          </div>
+        ),
+        estado: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Estado *</label>
+            <select name={name} value={value || "pendiente"} onChange={onChange} className={className} required>
+              <option value="pendiente">Pendiente</option>
+              <option value="completado">Completado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
+        ),
+        observaciones: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Observaciones</label>
+            <textarea
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              rows="2"
+              placeholder="Notas adicionales..."
+            />
+          </div>
+        ),
+      }}
         />
     );
 }

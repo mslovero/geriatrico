@@ -159,6 +159,25 @@ export default function FichaPaciente() {
         </div>
       </div>
 
+      {/* Patologías */}
+      {paciente.patologias && (
+        <div className="card border-0 shadow-sm mb-4">
+          <div className="card-header bg-white border-0 pt-4 px-4 pb-0">
+            <div className="d-flex align-items-center mb-2">
+              <div className="rounded-circle bg-danger bg-opacity-10 text-danger p-2 me-2">
+                <i className="bi bi-activity"></i>
+              </div>
+              <h5 className="mb-0 fw-bold">Patologías / Antecedentes</h5>
+            </div>
+          </div>
+          <div className="card-body p-4">
+            <p className="mb-0 text-dark" style={{ whiteSpace: 'pre-line' }}>
+              {paciente.patologias}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="row g-4">
         {/* Dieta y Alergias */}
         <div className="col-md-6">

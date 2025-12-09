@@ -80,34 +80,37 @@ export const handleApiError = (error) => {
     const status = error.response.status;
     const data = error.response.data;
 
+    // Helper para extraer el mensaje de error
+    const getErrorMessage = (data, defaultMsg) => {
+        return data.error || data.message || defaultMsg;
+    };
+
     switch (status) {
       case 400:
-        showError(data.message || 'Solicitud incorrecta');
+        showError(getErrorMessage(data, 'Solicitud incorrecta'));
         break;
       case 401:
-        showError('No autorizado. Por favor inicie sesión.');
+        showError(getErrorMessage(data, 'No autorizado. Por favor inicie sesión.'));
         break;
       case 403:
-        showError('No tiene permisos para realizar esta acción.');
+        showError(getErrorMessage(data, 'No tiene permisos para realizar esta acción.'));
         break;
       case 404:
-        showError(data.message || 'Recurso no encontrado.');
+        showError(getErrorMessage(data, 'Recurso no encontrado.'));
         break;
       case 422:
         // Errores de validación
         if (data.errors) {
           showValidationErrors(data.errors);
-        } else if (data.message) {
-          showError(data.message);
         } else {
-          showError('Error de validación en los datos enviados.');
+          showError(getErrorMessage(data, 'Error de validación en los datos enviados.'));
         }
         break;
       case 500:
-        showError('Error interno del servidor. Por favor intente más tarde.');
+        showError(getErrorMessage(data, 'Error interno del servidor. Por favor intente más tarde.'));
         break;
       default:
-        showError(data.message || 'Ha ocurrido un error inesperado.');
+        showError(getErrorMessage(data, 'Ha ocurrido un error inesperado.'));
     }
   } else if (error.request) {
     // La petición fue hecha pero no se recibió respuesta

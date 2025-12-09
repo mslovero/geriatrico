@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Medicacion extends Model
 {
     use HasFactory;
-    protected $tables = 'medicacion';
+    protected $table = 'medicacions';
      protected $fillable = [
         'nombre',
         'dosis',
@@ -19,11 +19,17 @@ class Medicacion extends Model
         'tipo',
         'cantidad_mensual',
         'fecha_inicio',
-        'fecha_fin'
+        'fecha_fin',
+        'origen_pago',
+        'stock_item_id'
 
      ];
 
      public function paciente() {
         return $this->belongsTo(Paciente::class);
+     }
+
+     public function stockItem() {
+        return $this->belongsTo(StockItem::class);
      }
 }

@@ -106,95 +106,122 @@ export default function AdministracionMedicamentos() {
       canCreate={canManage}
       canEdit={canManage}
       canDelete={canDelete}
+      formFields={[
+        { key: 'paciente_id', colSize: 6 },
+        { key: 'medicacion_id', colSize: 6 },
+        { key: 'estado', colSize: 6 },
+        { key: 'fecha_hora', colSize: 6 },
+        { key: 'user_id', colSize: 12 },
+        { key: 'observaciones', colSize: 12 }
+      ]}
       customFields={{
         // 1. Seleccionar Paciente
         paciente_id: (props) => (
-          <PatientSelect
-            {...props}
-            onChange={(e) => {
-              props.onChange(e);
-              // Filtrar medicaciones para este paciente
-              const pid = parseInt(e.target.value);
-              const meds = medicaciones.filter((m) => m.paciente_id === pid);
-              setFilteredMedicaciones(meds);
-              // Resetear medicacion seleccionada si cambia el paciente
-              // (Esto requiere acceso al setForm que CrudView pasa en props extendidas,
-              //  pero por simplicidad aquí confiamos en que el usuario elija de nuevo)
-            }}
-          />
+          <div>
+            <label className="form-label fw-bold">Paciente *</label>
+            <PatientSelect
+              {...props}
+              onChange={(e) => {
+                props.onChange(e);
+                // Filtrar medicaciones para este paciente
+                const pid = parseInt(e.target.value);
+                const meds = medicaciones.filter((m) => m.paciente_id === pid);
+                setFilteredMedicaciones(meds);
+              }}
+              className={props.className}
+            />
+          </div>
         ),
         // 2. Seleccionar Medicación (filtrada)
         medicacion_id: ({ name, value, onChange, className, form }) => (
-          <select
-            name={name}
-            value={value}
-            onChange={onChange}
-            className={className}
-            required
-            disabled={!form.paciente_id}
-          >
-            <option value="">
-              {form.paciente_id
-                ? "Seleccionar medicación..."
-                : "Primero seleccione un paciente"}
-            </option>
-            {filteredMedicaciones.map((m) => (
-              <option key={m.id} value={m.id}>
-                [{m.tipo ? m.tipo.toUpperCase() : "DIARIA"}] {m.nombre} -{" "}
-                {m.dosis} ({m.frecuencia})
+          <div>
+            <label className="form-label fw-bold">Medicación *</label>
+            <select
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              required
+              disabled={!form.paciente_id}
+            >
+              <option value="">
+                {form.paciente_id
+                  ? "Seleccionar medicación..."
+                  : "Primero seleccione un paciente"}
               </option>
-            ))}
-          </select>
+              {filteredMedicaciones.map((m) => (
+                <option key={m.id} value={m.id}>
+                  [{m.tipo ? m.tipo.toUpperCase() : "DIARIA"}] {m.nombre} -{" "}
+                  {m.dosis} ({m.frecuencia})
+                </option>
+              ))}
+            </select>
+          </div>
         ),
         estado: ({ name, value, onChange, className }) => (
-          <select
-            name={name}
-            value={value}
-            onChange={onChange}
-            className={className}
-            required
-          >
-            <option value="">Seleccionar estado...</option>
-            <option value="administrado">Administrado</option>
-            <option value="rechazado">Rechazado (Paciente se negó)</option>
-            <option value="suspendido">Suspendido (Orden médica)</option>
-            <option value="error">Error / No disponible</option>
-          </select>
+          <div>
+            <label className="form-label fw-bold">Estado de Administración *</label>
+            <select
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              required
+            >
+              <option value="">Seleccionar estado...</option>
+              <option value="administrado">Administrado</option>
+              <option value="rechazado">Rechazado (Paciente se negó)</option>
+              <option value="suspendido">Suspendido (Orden médica)</option>
+              <option value="error">Error / No disponible</option>
+            </select>
+          </div>
         ),
         fecha_hora: ({ name, value, onChange, className }) => (
-          <input
-            type="datetime-local"
-            name={name}
-            value={value}
-            onChange={onChange}
-            className={className}
-            required
-          />
+          <div>
+            <label className="form-label fw-bold">Fecha y Hora *</label>
+            <input
+              type="datetime-local"
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              required
+            />
+          </div>
         ),
         user_id: ({ name, value, onChange, className }) => (
-          <select
-            name={name}
-            value={value}
-            onChange={onChange}
-            className={className}
-          >
-            <option value="">Usuario actual (Automático)</option>
-            {enfermeros.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name} ({u.role})
-              </option>
-            ))}
-          </select>
+          <div>
+            <label className="form-label fw-bold">Responsable (Opcional)</label>
+            <select
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+            >
+              <option value="">Usuario actual (Automático)</option>
+              {enfermeros.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.role})
+                </option>
+              ))}
+            </select>
+            <small className="text-muted d-block mt-1">
+              Si se deja vacío, se asignará al usuario logueado.
+            </small>
+          </div>
         ),
         observaciones: ({ name, value, onChange, className }) => (
-          <textarea
-            name={name}
-            value={value}
-            onChange={onChange}
-            className={className}
-            rows="2"
-            placeholder="Observaciones..."
-          />
+          <div>
+            <label className="form-label fw-bold">Observaciones (Opcional)</label>
+            <textarea
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              rows="2"
+              placeholder="Detalles adicionales sobre la administración..."
+            />
+          </div>
         ),
       }}
     />

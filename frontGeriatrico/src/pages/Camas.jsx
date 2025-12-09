@@ -43,28 +43,45 @@ export default function Camas() {
             canCreate={canManage}
             canEdit={canManage}
             canDelete={user?.role === 'admin'}
-            customFields={{
-                habitacion_id: ({ name, value, onChange, className }) => (
-                    <select name={name} value={value} onChange={onChange} className={className} required>
-                        <option value="">Seleccionar habitación</option>
-                        {habitaciones.map((habitacion) => (
-                            <option key={habitacion.id} value={habitacion.id}>
-                                Habitación {habitacion.numero} (Capacidad: {habitacion.capacidad})
-                            </option>
-                        ))}
-                    </select>
-                ),
-                estado: ({ name, value, onChange, className }) => (
-                    <select name={name} value={value} onChange={onChange} className={className}>
-                        <option value="">Seleccionar estado</option>
-                        {['libre', 'ocupada', 'mantenimiento'].map((estado) => (
-                            <option key={estado} value={estado}>
-                                {estado.charAt(0).toUpperCase() + estado.slice(1)}
-                            </option>
-                        ))}
-                    </select>
-                ),
-            }}
+      formFields={[
+        { key: 'habitacion_id', colSize: 12 },
+        { key: 'numero_cama', colSize: 6 },
+        { key: 'estado', colSize: 6 }
+      ]}
+      customFields={{
+        habitacion_id: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Habitación *</label>
+            <select name={name} value={value || ""} onChange={onChange} className={className} required>
+              <option value="">Seleccionar habitación</option>
+              {habitaciones.map((habitacion) => (
+                <option key={habitacion.id} value={habitacion.id}>
+                  Habitación {habitacion.numero} (Capacidad: {habitacion.capacidad})
+                </option>
+              ))}
+            </select>
+          </div>
+        ),
+        numero_cama: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Número de Cama *</label>
+            <input name={name} value={value || ""} onChange={onChange} className={className} required placeholder="Ej: A" />
+          </div>
+        ),
+        estado: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Estado *</label>
+            <select name={name} value={value || ""} onChange={onChange} className={className} required>
+              <option value="">Seleccionar estado</option>
+              {['libre', 'ocupada', 'mantenimiento'].map((estado) => (
+                <option key={estado} value={estado}>
+                  {estado.charAt(0).toUpperCase() + estado.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        ),
+      }}
         />
     );
 }

@@ -10,6 +10,7 @@ export default function CrudView({
   endpoint,
   columns,
   title,
+  formFields,
   customFields = {},
   transformData,
   onEdit,
@@ -17,6 +18,7 @@ export default function CrudView({
   canEdit = true,
   canDelete = true,
   customActions,
+  headerActions,
 }) {
   const [data, setData] = useState([]);
   const [form, setForm] = useState({});
@@ -131,19 +133,27 @@ export default function CrudView({
           </div>
           <div className="card-body p-4 bg-surface">
             <form onSubmit={handleSubmit} className="row g-4">
-              {columns.map((col) => {
-                const customRenderer = customFields[col.key];
-                const colSize = col.colSize || 4;
+              {(customFields && formFields ? formFields : columns).map((field) => {
+                // Determinar la clave y la etiqueta
+                const key = typeof field === 'string' ? field : field.key;
+                const colDef = columns.find(c => c.key === key);
+                const label = typeof field === 'object' && field.label ? field.label : (colDef ? colDef.label : key);
+                
+                // Si usamos formFields y es un string, asumimos colSize 12 o 6 según diseño, 
+                // pero por compatibilidad intentamos buscarlo en columns o default a 12 si es custom
+                const colSize = (typeof field === 'object' && field.colSize) ? field.colSize : (colDef ? colDef.colSize : 12);
+
+                const customRenderer = customFields[key];
 
                 if (customRenderer) {
                   return (
-                    <div className={`col-md-${colSize}`} key={col.key}>
-                      <label className="form-label small text-uppercase fw-bold text-muted">
-                        {col.label}
-                      </label>
+                    <div className={`col-md-${colSize}`} key={key}>
+                      {/* El label se maneja dentro del customRenderer si se desea, o aquí genérico */}
+                      {/* Para mantener consistencia con Lotes.jsx que tiene sus propios labels, 
+                          podemos renderizar solo el componente si el renderer retorna todo el bloque */}
                       {customRenderer({
-                        name: col.key,
-                        value: form[col.key] || "",
+                        name: key,
+                        value: form[key] || "",
                         onChange: handleChange,
                         form,
                         setForm,
@@ -153,16 +163,17 @@ export default function CrudView({
                   );
                 }
 
-                if (col.key.toLowerCase().includes("fecha")) {
+                // Si no hay custom renderer, renderizado standard
+                if (key.toLowerCase().includes("fecha")) {
                   return (
-                    <div className={`col-md-${colSize}`} key={col.key}>
+                    <div className={`col-md-${colSize}`} key={key}>
                       <label className="form-label small text-uppercase fw-bold text-muted">
-                        {col.label}
+                        {label}
                       </label>
                       <input
                         type="date"
-                        name={col.key}
-                        value={form[col.key] || ""}
+                        name={key}
+                        value={form[key] || ""}
                         onChange={handleChange}
                         className="form-control"
                       />
@@ -171,15 +182,15 @@ export default function CrudView({
                 }
 
                 return (
-                  <div className={`col-md-${colSize}`} key={col.key}>
+                  <div className={`col-md-${colSize}`} key={key}>
                     <label className="form-label small text-uppercase fw-bold text-muted">
-                      {col.label}
+                      {label}
                     </label>
                     <input
-                      name={col.key}
-                      value={form[col.key] || ""}
+                      name={key}
+                      value={form[key] || ""}
                       onChange={handleChange}
-                      placeholder={`Ingrese ${col.label.toLowerCase()}`}
+                      placeholder={`Ingrese ${label.toLowerCase()}`}
                       className="form-control"
                     />
                   </div>
@@ -225,6 +236,7 @@ export default function CrudView({
                <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">
                   {filteredData.length} Total
                </span>
+               {headerActions && headerActions()}
            </div>
         </div>
         

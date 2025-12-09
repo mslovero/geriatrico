@@ -50,6 +50,7 @@ const Layout = () => {
       label: "Historial Médico",
       icon: "bi-file-medical",
     },
+    { path: "/stock", label: "Stock", icon: "bi-box-seam" },
     { path: "/archivos", label: "Archivos", icon: "bi-folder-fill" },
   ];
 

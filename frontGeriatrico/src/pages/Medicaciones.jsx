@@ -1,15 +1,62 @@
-import React from "react";
+import React, { useState } from "react";
 import CrudView from "../components/CrudView";
 import PatientSelect from "../components/PatientSelect";
 import { useAuth } from "../context/AuthContext";
+import AdministrarMedicacionModal from "../components/AdministrarMedicacionModal";
+import { Capsule } from "react-bootstrap-icons";
+import { get } from "../api/api";
 
 export default function Medicaciones() {
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [selectedMed, setSelectedMed] = useState(null);
+
+  const handleAdministrar = (item) => {
+    setSelectedMed(item);
+    setShowAdminModal(true);
+  };
+
+  const [stockItems, setStockItems] = useState([]);
+  const [modoManual, setModoManual] = useState(false);
+
+  React.useEffect(() => {
+    const fetchStock = async () => {
+        try {
+            const res = await get("/stock-items");
+            const items = Array.isArray(res) ? res : res.data || [];
+            // Filtramos solo los que son medicamentos y están activos
+            setStockItems(items.filter(i => i.tipo === 'medicamento' && i.activo));
+        } catch (error) {
+            console.error("Error cargando stock:", error);
+        }
+    };
+    fetchStock();
+  }, []);
+
   const columns = [
     { key: "nombre", label: "Nombre Medicación" },
     { key: "dosis", label: "Dosis" },
     { key: "frecuencia", label: "Frecuencia" },
     { key: "tipo", label: "Tipo" },
     { key: "cantidad_mensual", label: "Cant. Mensual" },
+    { 
+        key: "origen_pago", 
+        label: "Origen Pago",
+        render: (value) => {
+            const badges = {
+                'obra_social': 'bg-primary',
+                'geriatrico': 'bg-success',
+                'paciente': 'bg-warning text-dark'
+            };
+            const labels = {
+                'obra_social': 'Obra Social',
+                'geriatrico': 'Geriátrico',
+                'paciente': 'Paciente'
+            };
+            return <span className={`badge ${badges[value] || 'bg-secondary'}`}>
+                {labels[value] || value}
+            </span>;
+        }
+    },
     { 
         key: "fecha_inicio", 
         label: "Fecha Inicio",
@@ -43,68 +90,264 @@ export default function Medicaciones() {
   const canManage = user?.role === "admin" || user?.role === "medico";
 
   return (
-    <CrudView
-      endpoint="/medicamentos"
-      columns={columns}
-      title="Gestión de Medicamentos"
-      canCreate={canManage}
-      canEdit={canManage}
-      canDelete={user?.role === "admin"}
+    <>
+      <CrudView
+        endpoint="/medicamentos"
+        columns={columns}
+        title="Gestión de Medicamentos"
+        canCreate={canManage}
+        canEdit={canManage}
+        canDelete={user?.role === "admin"}
+      formFields={[
+        { key: 'nombre', colSize: 12 },
+        { key: 'paciente_id', colSize: 12 },
+        { key: 'dosis', colSize: 6 },
+        { key: 'frecuencia', colSize: 6 },
+        { key: 'tipo', colSize: 6 },
+        { key: 'origen_pago', colSize: 6 },
+        { key: 'cantidad_mensual', colSize: 12 },
+        { key: 'fecha_inicio', colSize: 6 },
+        { key: 'fecha_fin', colSize: 6 },
+        { key: 'observaciones', colSize: 12 }
+      ]}
       customFields={{
-        paciente_id: (props) => <PatientSelect {...props} />,
+        nombre: ({ name, value, onChange, className, setForm, form }) => {
+          if (modoManual) {
+            return (
+              <div>
+                <label className="form-label fw-bold">Nombre Medicamento *</label>
+                <input
+                  type="text"
+                  name={name}
+                  value={value || ""}
+                  onChange={onChange}
+                  className={className}
+                  placeholder="Ingrese nombre del medicamento"
+                  required
+                />
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm p-0 mt-1 text-decoration-none"
+                  onClick={() => {
+                    setModoManual(false);
+                    setForm((prev) => ({ ...prev, stock_item_id: null, nombre: "" }));
+                  }}
+                >
+                  ← Volver a selección de stock
+                </button>
+              </div>
+            );
+          }
+
+          return (
+            <div>
+              <label className="form-label fw-bold">Nombre Medicamento (Stock) *</label>
+              <select
+                name={name}
+                value={form.stock_item_id || ""}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  const selectedItem = stockItems.find((i) => i.id == selectedId);
+                  if (selectedItem) {
+                    setForm((prev) => ({
+                      ...prev,
+                      nombre: selectedItem.nombre,
+                      stock_item_id: selectedItem.id,
+                    }));
+                  }
+                }}
+                className={className}
+              >
+                <option value="">Seleccione del Stock...</option>
+                {stockItems.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nombre} (Stock: {item.stock_actual})
+                  </option>
+                ))}
+              </select>
+              <div className="d-flex justify-content-between align-items-center mt-1">
+                <small className="text-muted">
+                  {form.stock_item_id
+                    ? "✅ Vinculado a stock"
+                    : "Seleccione un item"}
+                </small>
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm p-0 text-decoration-none"
+                  onClick={() => {
+                    setModoManual(true);
+                    setForm((prev) => ({ ...prev, stock_item_id: null, nombre: "" }));
+                  }}
+                >
+                  ¿No está en la lista? Ingresar manual
+                </button>
+              </div>
+            </div>
+          );
+        },
+        paciente_id: (props) => (
+          <div>
+            <label className="form-label fw-bold">Paciente *</label>
+            <PatientSelect {...props} />
+          </div>
+        ),
+        dosis: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Dosis</label>
+            <input
+              type="text"
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              placeholder="Ej: 500mg"
+            />
+          </div>
+        ),
+        frecuencia: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Frecuencia</label>
+            <input
+              type="text"
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              placeholder="Ej: c/8hs"
+            />
+          </div>
+        ),
         tipo: ({ name, value, onChange, className }) => (
-          <select
-            name={name}
-            value={value || "diaria"}
-            onChange={onChange}
-            className={className}
-          >
-            <option value="diaria">Diaria (Crónica)</option>
-            <option value="sos">SOS (Dolor/Ocasional)</option>
-          </select>
+          <div>
+            <label className="form-label fw-bold">Tipo *</label>
+            <select
+              name={name}
+              value={value || "diaria"}
+              onChange={onChange}
+              className={className}
+              required
+            >
+              <option value="diaria">Diaria (Crónica)</option>
+              <option value="sos">SOS (Dolor/Ocasional)</option>
+            </select>
+          </div>
         ),
         cantidad_mensual: ({ name, value, onChange, className, form }) => {
           const isDiaria = (form.tipo || "diaria") === "diaria";
           if (!isDiaria) return null;
           return (
+            <div>
+              <label className="form-label fw-bold">Cantidad Mensual Estimada</label>
+              <input
+                type="number"
+                name={name}
+                value={value || ""}
+                onChange={onChange}
+                className={className}
+                placeholder="Ej: 30"
+              />
+            </div>
+          );
+        },
+        origen_pago: ({ name, value, onChange, className, setForm }) => {
+          React.useEffect(() => {
+            if (!value) {
+              setForm((prev) => ({ ...prev, [name]: "geriatrico" }));
+            }
+          }, []);
+
+          return (
+            <div>
+              <label className="form-label fw-bold">Origen de Pago *</label>
+              <select
+                name={name}
+                value={value || "geriatrico"}
+                onChange={onChange}
+                className={className}
+                required
+              >
+                <option value="obra_social">Obra Social</option>
+                <option value="geriatrico">Geriátrico</option>
+                <option value="paciente">Paciente</option>
+              </select>
+            </div>
+          );
+        },
+        fecha_inicio: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Fecha Inicio</label>
             <input
-              type="number"
+              type="date"
               name={name}
               value={value || ""}
               onChange={onChange}
               className={className}
-              placeholder="Ej: 30"
             />
-          );
-        },
-        fecha_inicio: ({ name, value, onChange, className }) => (
-            <input
-                type="date"
-                name={name}
-                value={value || ''}
-                onChange={onChange}
-                className={className}
-            />
+          </div>
         ),
         fecha_fin: ({ name, value, onChange, className }) => (
+          <div>
+            <label className="form-label fw-bold">Fecha Fin</label>
             <input
-                type="date"
-                name={name}
-                value={value || ''}
-                onChange={onChange}
-                className={className}
+              type="date"
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
             />
+          </div>
         ),
         observaciones: ({ name, value, onChange, className }) => (
-          <textarea
-            name={name}
-            value={value}
-            onChange={onChange}
-            className={className}
-            rows="2"
-          />
+          <div>
+            <label className="form-label fw-bold">Observaciones</label>
+            <textarea
+              name={name}
+              value={value || ""}
+              onChange={onChange}
+              className={className}
+              rows="2"
+              placeholder="Notas adicionales..."
+            />
+          </div>
         ),
       }}
-    />
+        customActions={(item) => (
+          <button
+            className="btn btn-sm btn-outline-success ms-1"
+            onClick={() => handleAdministrar(item)}
+            title="Administrar Medicación"
+          >
+            <Capsule />
+          </button>
+        )}
+        headerActions={() => (
+          <div className="d-flex gap-2">
+            <button
+              className="btn btn-info text-white shadow-sm d-flex align-items-center gap-2"
+              onClick={() => window.location.href = "/medicamentos/estado"}
+            >
+              <i className="bi bi-activity"></i>
+              <span>Estado Stock</span>
+            </button>
+            <button
+              className="btn btn-primary shadow-sm d-flex align-items-center gap-2"
+              onClick={() => window.location.href = "/medicamentos/carga"}
+            >
+              <i className="bi bi-stack"></i>
+              <span>Carga Masiva</span>
+            </button>
+          </div>
+        )}
+      />
+
+      <AdministrarMedicacionModal
+        show={showAdminModal}
+        onHide={() => setShowAdminModal(false)}
+        medicacion={selectedMed}
+        onSuccess={() => {
+          // Opcional: recargar datos si fuera necesario
+        }}
+      />
+    </>
   );
 }

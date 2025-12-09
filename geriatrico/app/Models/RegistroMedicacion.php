@@ -13,7 +13,10 @@ class RegistroMedicacion extends Model
         'user_id',
         'fecha_hora',
         'estado',
-        'observaciones'
+        'observaciones',
+        'lote_stock_id',
+        'cantidad_administrada',
+        'costo_unitario'
     ];
 
     public function medicacion()
@@ -24,5 +27,10 @@ class RegistroMedicacion extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function loteStock()
+    {
+        return $this->belongsTo(LoteStock::class);
     }
 }
