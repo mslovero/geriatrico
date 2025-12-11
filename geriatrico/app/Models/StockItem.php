@@ -23,8 +23,8 @@ class StockItem extends Model
         'stock_maximo',
         'precio_unitario',
         'proveedor_id',
-        'fecha_vencimiento',
-        'lote',
+        'fecha_vencimiento', // @deprecated - Usar LoteStock en su lugar
+        'lote', // @deprecated - Usar LoteStock en su lugar
         'observaciones',
         'categoria',
         'punto_reorden',
@@ -106,18 +106,19 @@ class StockItem extends Model
         return $this->punto_reorden && $this->stock_actual <= $this->punto_reorden;
     }
 
-    // Verificar si está próximo a vencer (30 días) - Ahora mira los lotes
+    // Verificar si está próximo a vencer (30 días) - Sistema profesional con lotes
     public function isProximoVencer()
     {
-        // Si tiene lotes, verificamos si alguno está por vencer
+        // Sistema profesional: verificar lotes activos próximos a vencer
         if ($this->lotes()->exists()) {
             return $this->lotes()
                 ->where('estado', 'activo')
                 ->whereDate('fecha_vencimiento', '<=', now()->addDays(30))
                 ->exists();
         }
-        
-        // Fallback al campo antiguo si no tiene lotes
+
+        // @deprecated - Fallback al campo antiguo solo para compatibilidad
+        // TODO: Remover cuando todos los items tengan lotes
         if (!$this->fecha_vencimiento) return false;
         return $this->fecha_vencimiento->diffInDays(now()) <= 30;
     }

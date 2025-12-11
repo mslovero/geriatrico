@@ -124,24 +124,6 @@ export default function StockItems() {
       label: "Proveedor",
       render: (value, item) => item.proveedor?.nombre || "-",
     },
-    {
-      key: "fecha_vencimiento",
-      label: "Vencimiento",
-      render: (value) => {
-        if (!value) return "-";
-        const fecha = new Date(value);
-        const diasRestantes = Math.ceil(
-          (fecha - new Date()) / (1000 * 60 * 60 * 24)
-        );
-        const isProximo = diasRestantes <= 30 && diasRestantes >= 0;
-        return (
-          <span className={isProximo ? "text-danger fw-bold" : ""}>
-            {fecha.toLocaleDateString("es-AR")}
-            {isProximo && ` (${diasRestantes}d)`}
-          </span>
-        );
-      },
-    },
   ];
 
   return (
@@ -162,6 +144,7 @@ export default function StockItems() {
         { key: 'factor_conversion', colSize: 6 },
         { key: 'descripcion_presentacion', colSize: 6 },
         { key: 'stock_actual', colSize: 4 },
+        { key: 'fecha_vencimiento_inicial', colSize: 4 },
         { key: 'stock_minimo', colSize: 4 },
         { key: 'stock_maximo', colSize: 4 },
         { key: 'proveedor_id', colSize: 6 },
@@ -311,13 +294,19 @@ export default function StockItems() {
                 value={value || ""}
                 onChange={onChange}
                 className={className}
-                step="0.01"
-                min="1"
+                step="1"
+                min="2"
                 placeholder={`Ej: 30`}
+                required
               />
               <small className="text-muted d-block mt-1">
                 1 {form.unidad_presentacion} = <strong>X</strong> {form.unidad_medida || 'unidades'}
               </small>
+              {value && parseFloat(value) < 2 && (
+                <small className="text-danger d-block mt-1">
+                  ⚠️ El factor debe ser mayor o igual a 2 (mínimo 2 unidades por presentación)
+                </small>
+              )}
             </div>
           );
         },
@@ -358,20 +347,72 @@ export default function StockItems() {
             </div>
           );
         },
-        stock_actual: ({ name, value, onChange, className }) => (
-          <div>
-            <label className="form-label fw-bold">Stock Inicial *</label>
-            <input
-              type="number"
-              name={name}
-              value={value || 0}
-              onChange={onChange}
-              className={className}
-              min="0"
-              required
-            />
-          </div>
-        ),
+        stock_actual: ({ name, value, onChange, className, form }) => {
+          const isEditing = form.id; // Si tiene ID, está editando
+
+          if (isEditing) {
+            // En modo edición: mostrar solo lectura
+            return (
+              <div>
+                <label className="form-label fw-bold">Stock Actual</label>
+                <input
+                  type="text"
+                  value={`${value || 0} ${form.unidad_medida || 'unidades'}`}
+                  className="form-control bg-light"
+                  disabled
+                  readOnly
+                />
+                <small className="text-muted d-block mt-1">
+                  ℹ️ El stock se calcula automáticamente sumando todos los lotes.
+                  Use "Gestión de Lotes" para ingresar stock.
+                </small>
+              </div>
+            );
+          }
+
+          // En modo creación: permitir stock inicial
+          return (
+            <div>
+              <label className="form-label fw-bold">Stock Inicial</label>
+              <input
+                type="number"
+                name={name}
+                value={value || 0}
+                onChange={onChange}
+                className={className}
+                min="0"
+              />
+              <small className="text-muted d-block mt-1">
+                💡 Si ingresa stock inicial, se creará automáticamente un lote.
+                Recomendado: dejar en 0 y crear lotes después.
+              </small>
+            </div>
+          );
+        },
+        fecha_vencimiento_inicial: ({ name, value, onChange, className, form }) => {
+          const isEditing = form.id;
+          const hasStockInicial = !isEditing && parseFloat(form.stock_actual || 0) > 0;
+
+          // Solo mostrar en creación y si hay stock inicial
+          if (isEditing || !hasStockInicial) return null;
+
+          return (
+            <div>
+              <label className="form-label fw-bold">Vencimiento del Lote Inicial</label>
+              <input
+                type="date"
+                name={name}
+                value={value || ""}
+                onChange={onChange}
+                className={className}
+                min={new Date().toISOString().split('T')[0]}
+              />
+              <small className="text-muted d-block mt-1">
+                📅 Opcional. Si no ingresa, se asignará vencimiento en 2 años.
+              </small>
+            </div>
+          );
+        },
         stock_minimo: ({ name, value, onChange, className }) => (
           <div>
             <label className="form-label fw-bold">Stock Mínimo (Alerta) *</label>
@@ -386,19 +427,30 @@ export default function StockItems() {
             />
           </div>
         ),
-        stock_maximo: ({ name, value, onChange, className }) => (
-          <div>
-            <label className="form-label fw-bold">Stock Máximo (Opcional)</label>
-            <input
-              type="number"
-              name={name}
-              value={value || ""}
-              onChange={onChange}
-              className={className}
-              min="0"
-            />
-          </div>
-        ),
+        stock_maximo: ({ name, value, onChange, className, form }) => {
+          const stockMinimo = parseInt(form.stock_minimo) || 0;
+          const stockMaximo = parseInt(value) || 0;
+          const isInvalid = value && stockMaximo > 0 && stockMaximo < stockMinimo;
+
+          return (
+            <div>
+              <label className="form-label fw-bold">Stock Máximo (Opcional)</label>
+              <input
+                type="number"
+                name={name}
+                value={value || ""}
+                onChange={onChange}
+                className={`${className} ${isInvalid ? 'is-invalid' : ''}`}
+                min={stockMinimo}
+              />
+              {isInvalid && (
+                <small className="text-danger d-block mt-1">
+                  ⚠️ El stock máximo debe ser mayor o igual al stock mínimo ({stockMinimo})
+                </small>
+              )}
+            </div>
+          );
+        },
         precio_unitario: ({ name, value, onChange, className, form }) => {
           if (form.propiedad === "paciente") return null;
           return (

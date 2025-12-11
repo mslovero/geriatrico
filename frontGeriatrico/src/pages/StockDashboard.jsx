@@ -7,6 +7,7 @@ import {
   CalendarX,
   Plus,
 } from "react-bootstrap-icons";
+import EmptyState from "../components/EmptyState";
 
 export default function StockDashboard() {
   const [stats, setStats] = useState({
@@ -186,11 +187,12 @@ export default function StockDashboard() {
                       ))
                     ) : (
                       <tr>
-                        <td
-                          colSpan="3"
-                          className="text-center text-muted py-4 fst-italic"
-                        >
-                          No hay items con stock bajo
+                        <td colSpan="3" className="border-0 p-0">
+                          <EmptyState
+                            type="success"
+                            title="Todo en orden"
+                            message="No hay medicamentos con stock por debajo del mínimo. Excelente gestión!"
+                          />
                         </td>
                       </tr>
                     )}
@@ -201,14 +203,15 @@ export default function StockDashboard() {
           </div>
         </div>
 
-        {/* Items próximos a vencer */}
+        {/* Lotes próximos a vencer */}
         <div className="col-lg-6">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-header bg-white border-0 py-3 px-4">
               <h5 className="mb-0 fw-bold text-danger">
                 <CalendarX className="me-2" />
-                Próximos a Vencer
+                Lotes Próximos a Vencer
               </h5>
+              <small className="text-muted">Próximos 30 días</small>
             </div>
             <div className="card-body p-0">
               <div className="table-responsive">
@@ -217,42 +220,65 @@ export default function StockDashboard() {
                     <tr>
                       <th className="ps-4 border-0">Item</th>
                       <th className="border-0">Lote</th>
+                      <th className="border-0">Stock</th>
                       <th className="border-0">Vencimiento</th>
                     </tr>
                   </thead>
                   <tbody>
                     {itemsProximosVencer.length > 0 ? (
-                      itemsProximosVencer.slice(0, 5).map((item) => (
-                        <tr key={item.id}>
-                          <td className="ps-4">
-                            <div className="fw-bold">{item.nombre}</div>
-                            <small className="text-muted">{item.tipo}</small>
-                          </td>
-                          <td>{item.lote || "-"}</td>
-                          <td>
-                            <span className="badge bg-danger">
-                              {item.fecha_vencimiento
-                                ? new Date(
-                                    item.fecha_vencimiento
-                                  ).toLocaleDateString("es-AR")
-                                : "-"}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
+                      itemsProximosVencer.flatMap((item) =>
+                        (item.lotes || []).slice(0, 2).map((lote) => {
+                          const fecha = new Date(lote.fecha_vencimiento);
+                          const diasRestantes = Math.ceil((fecha - new Date()) / (1000 * 60 * 60 * 24));
+                          const isVencido = diasRestantes < 0;
+                          const isCritico = diasRestantes <= 7 && diasRestantes >= 0;
+
+                          return (
+                            <tr key={`${item.id}-${lote.id}`}>
+                              <td className="ps-4">
+                                <div className="fw-bold">{item.nombre}</div>
+                                <small className="text-muted">{item.tipo}</small>
+                              </td>
+                              <td>
+                                <small className="font-monospace">{lote.numero_lote}</small>
+                              </td>
+                              <td>
+                                <span className="badge bg-secondary">
+                                  {lote.cantidad_actual} {item.unidad_medida}
+                                </span>
+                              </td>
+                              <td>
+                                <span className={`badge ${isVencido ? 'bg-dark' : isCritico ? 'bg-danger' : 'bg-warning text-dark'}`}>
+                                  {fecha.toLocaleDateString("es-AR")}
+                                  {!isVencido && ` (${diasRestantes}d)`}
+                                  {isVencido && ' ⚠️ VENCIDO'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ).slice(0, 5)
                     ) : (
                       <tr>
-                        <td
-                          colSpan="3"
-                          className="text-center text-muted py-4 fst-italic"
-                        >
-                          No hay items próximos a vencer
+                        <td colSpan="4" className="border-0 p-0">
+                          <EmptyState
+                            type="success"
+                            title="Sin vencimientos próximos"
+                            message="Todos los lotes tienen fechas de vencimiento lejanas. Control óptimo del inventario."
+                          />
                         </td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
+              {itemsProximosVencer.flatMap(item => item.lotes || []).length > 5 && (
+                <div className="card-footer bg-light border-0 text-center py-2">
+                  <Link to="/stock/lotes" className="text-decoration-none small fw-bold">
+                    Ver todos los lotes próximos a vencer →
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>

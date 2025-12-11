@@ -95,7 +95,7 @@ export default function ReporteCostos() {
         <div className="card-body">
           <div className="row g-3 align-items-end">
             <div className="col-md-3">
-              <label className="form-label small fw-bold text-muted">
+              <label className="form-label fw-bold">
                 <CalendarRange className="me-2" />
                 Fecha Desde
               </label>
@@ -107,7 +107,7 @@ export default function ReporteCostos() {
               />
             </div>
             <div className="col-md-3">
-              <label className="form-label small fw-bold text-muted">
+              <label className="form-label fw-bold">
                 <CalendarRange className="me-2" />
                 Fecha Hasta
               </label>
@@ -119,7 +119,7 @@ export default function ReporteCostos() {
               />
             </div>
             <div className="col-md-4">
-              <label className="form-label small fw-bold text-muted">
+              <label className="form-label fw-bold">
                 Filtrar por Paciente
               </label>
               <PatientSelect

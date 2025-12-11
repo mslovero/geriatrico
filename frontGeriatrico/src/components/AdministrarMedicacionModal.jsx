@@ -104,24 +104,24 @@ export default function AdministrarMedicacionModal({ show, onHide, medicacion, o
                             <form onSubmit={handleSubmit}>
                                 <div className="alert alert-info small mb-3">
                                     <CheckCircle className="me-2" />
-                                    Se registrará la administración de <strong>1 dosis</strong>
-                                    {medicacion.stock_item && (
-                                        <span> ({medicacion.stock_item.unidad_medida})</span>
-                                    )}
+                                    Se registrará la administración de{' '}
+                                    <strong>
+                                        1 {medicacion.stock_item?.unidad_medida || 'dosis'}
+                                    </strong>
                                     {medicacion.stock_item_id && medicacion.origen_pago !== 'obra_social' && (
-                                        <span> y se descontará del stock</span>
+                                        <span> y se descontará del stock automáticamente</span>
                                     )}
                                     .
                                 </div>
 
                                 <div className="mb-4">
-                                    <label className="form-label fw-bold">Observaciones (Opcional)</label>
+                                    <label className="form-label fw-bold">Observaciones (opcional)</label>
                                     <textarea
                                         className="form-control"
                                         rows="2"
                                         value={observaciones}
                                         onChange={(e) => setObservaciones(e.target.value)}
-                                        placeholder="Ej: Paciente rechazó primera dosis..."
+                                        placeholder="Ej: Paciente rechazó primera dosis, se administró en segunda instancia..."
                                     ></textarea>
                                 </div>
 

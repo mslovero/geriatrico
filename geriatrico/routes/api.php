@@ -34,28 +34,41 @@ Route::apiResource('historiales-medicos', HistorialMedicoController::class);
 // 🔹 Archivos Adjuntos
 Route::apiResource('archivos-adjuntos', ArchivoAdjuntoController::class);
 Route::get('medicamentos/estado', [MedicacionController::class, 'estadoMedicaciones']);
-Route::post('medicamentos/batch', [MedicacionController::class, 'storeBatch']);
+// Rate limiting: máximo 10 creaciones batch por minuto
+Route::post('medicamentos/batch', [MedicacionController::class, 'storeBatch'])
+    ->middleware('throttle:10,1');
 Route::apiResource('medicamentos', MedicacionController::class);
 Route::apiResource('signos-vitales', \App\Http\Controllers\SignoVitalController::class);
-Route::apiResource('registro-medicaciones', \App\Http\Controllers\RegistroMedicacionController::class);
+// Rate limiting: máximo 30 registros de medicación por minuto
+Route::apiResource('registro-medicaciones', \App\Http\Controllers\RegistroMedicacionController::class)
+    ->middleware('throttle:30,1');
 Route::apiResource('incidencias', \App\Http\Controllers\IncidenciaController::class);
 Route::apiResource('dietas', \App\Http\Controllers\DietaController::class);
 Route::apiResource('turnos-medicos', \App\Http\Controllers\TurnoMedicoController::class);
 
 // 🔹 Gestión de Stock
 Route::apiResource('proveedores', \App\Http\Controllers\ProveedorController::class);
-Route::apiResource('stock-items', \App\Http\Controllers\StockItemController::class);
-Route::apiResource('lotes-stock', \App\Http\Controllers\LoteStockController::class);
+// Rate limiting: máximo 20 operaciones de stock por minuto
+Route::apiResource('stock-items', \App\Http\Controllers\StockItemController::class)
+    ->middleware('throttle:20,1');
+// Rate limiting: máximo 15 operaciones de lotes por minuto
+Route::apiResource('lotes-stock', \App\Http\Controllers\LoteStockController::class)
+    ->middleware('throttle:15,1');
 Route::apiResource('movimientos-stock', \App\Http\Controllers\MovimientoStockController::class);
 
 // Rutas adicionales de stock
 Route::get('stock-items-bajo-stock', [\App\Http\Controllers\StockItemController::class, 'bajoStock']);
 Route::get('stock-items-proximos-vencer', [\App\Http\Controllers\StockItemController::class, 'proximosVencer']);
-Route::post('stock-items/{id}/entrada', [\App\Http\Controllers\StockItemController::class, 'registrarEntrada']);
-Route::post('stock-items/{id}/salida', [\App\Http\Controllers\StockItemController::class, 'registrarSalida']);
+// Rate limiting: máximo 20 entradas/salidas por minuto
+Route::post('stock-items/{id}/entrada', [\App\Http\Controllers\StockItemController::class, 'registrarEntrada'])
+    ->middleware('throttle:20,1');
+Route::post('stock-items/{id}/salida', [\App\Http\Controllers\StockItemController::class, 'registrarSalida'])
+    ->middleware('throttle:20,1');
 Route::get('movimientos-stock/paciente/{pacienteId}', [\App\Http\Controllers\MovimientoStockController::class, 'porPaciente']);
 Route::post('movimientos-stock/reporte-consumo', [\App\Http\Controllers\MovimientoStockController::class, 'reporteConsumo']);
-Route::post('movimientos-stock/administrar', [\App\Http\Controllers\MovimientoStockController::class, 'administrarMedicacion']);
+// Rate limiting crítico: máximo 30 administraciones por minuto
+Route::post('movimientos-stock/administrar', [\App\Http\Controllers\MovimientoStockController::class, 'administrarMedicacion'])
+    ->middleware('throttle:30,1');
 
 // 🔹 Reportes de Stock y Costos
 Route::prefix('reportes')->group(function () {

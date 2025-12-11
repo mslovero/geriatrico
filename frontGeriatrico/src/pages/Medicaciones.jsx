@@ -17,20 +17,43 @@ export default function Medicaciones() {
 
   const [stockItems, setStockItems] = useState([]);
   const [modoManual, setModoManual] = useState(false);
+  const [currentForm, setCurrentForm] = useState(null);
 
+  // Cargar stock items filtrados según paciente y origen de pago
   React.useEffect(() => {
     const fetchStock = async () => {
+        if (!currentForm?.paciente_id || !currentForm?.origen_pago) {
+          // Si no hay paciente u origen de pago, limpiar stock
+          setStockItems([]);
+          return;
+        }
+
+        // Si el origen es obra social, no necesitamos stock
+        if (currentForm.origen_pago === 'obra_social') {
+          setStockItems([]);
+          return;
+        }
+
         try {
-            const res = await get("/stock-items");
+            let url = "/stock-items?activo=1&tipo=medicamento";
+
+            // Filtrar según origen de pago
+            if (currentForm.origen_pago === 'geriatrico') {
+              url += "&propiedad=geriatrico";
+            } else if (currentForm.origen_pago === 'paciente') {
+              url += `&propiedad=paciente&paciente_id=${currentForm.paciente_id}`;
+            }
+
+            const res = await get(url);
             const items = Array.isArray(res) ? res : res.data || [];
-            // Filtramos solo los que son medicamentos y están activos
-            setStockItems(items.filter(i => i.tipo === 'medicamento' && i.activo));
+            setStockItems(items);
         } catch (error) {
             console.error("Error cargando stock:", error);
+            setStockItems([]);
         }
     };
     fetchStock();
-  }, []);
+  }, [currentForm?.paciente_id, currentForm?.origen_pago]);
 
   const columns = [
     { key: "nombre", label: "Nombre Medicación" },
@@ -112,6 +135,12 @@ export default function Medicaciones() {
       ]}
       customFields={{
         nombre: ({ name, value, onChange, className, setForm, form }) => {
+          // Sincronizar form con currentForm para el filtrado de stock
+          React.useEffect(() => {
+            setCurrentForm(form);
+          }, [form.paciente_id, form.origen_pago]);
+
+
           if (modoManual) {
             return (
               <div>
@@ -122,7 +151,7 @@ export default function Medicaciones() {
                   value={value || ""}
                   onChange={onChange}
                   className={className}
-                  placeholder="Ingrese nombre del medicamento"
+                  placeholder="Ej: Ibuprofeno 600mg"
                   required
                 />
                 <button
@@ -157,11 +186,22 @@ export default function Medicaciones() {
                   }
                 }}
                 className={className}
+                disabled={!form.paciente_id || !form.origen_pago || form.origen_pago === 'obra_social'}
               >
-                <option value="">Seleccione del Stock...</option>
+                <option value="">
+                  {!form.paciente_id
+                    ? "Primero seleccione un paciente..."
+                    : !form.origen_pago
+                    ? "Primero seleccione origen de pago..."
+                    : form.origen_pago === 'obra_social'
+                    ? "Obra social no usa stock"
+                    : stockItems.length === 0
+                    ? "No hay stock disponible"
+                    : "Seleccione del Stock..."}
+                </option>
                 {stockItems.map((item) => (
                   <option key={item.id} value={item.id}>
-                    {item.nombre} (Stock: {item.stock_actual})
+                    {item.nombre} (Stock: {item.stock_actual} {item.unidad_medida})
                   </option>
                 ))}
               </select>
@@ -169,7 +209,11 @@ export default function Medicaciones() {
                 <small className="text-muted">
                   {form.stock_item_id
                     ? "✅ Vinculado a stock"
-                    : "Seleccione un item"}
+                    : form.origen_pago === 'geriatrico'
+                    ? "Mostrando solo stock del geriátrico"
+                    : form.origen_pago === 'paciente'
+                    ? "Mostrando solo stock del paciente seleccionado"
+                    : "Seleccione paciente y origen de pago"}
                 </small>
                 <button
                   type="button"
@@ -200,7 +244,7 @@ export default function Medicaciones() {
               value={value || ""}
               onChange={onChange}
               className={className}
-              placeholder="Ej: 500mg"
+              placeholder="Ej: 600mg, 5ml, 2 pastillas"
             />
           </div>
         ),
@@ -213,7 +257,7 @@ export default function Medicaciones() {
               value={value || ""}
               onChange={onChange}
               className={className}
-              placeholder="Ej: c/8hs"
+              placeholder="Ej: c/8hs, c/12hs, 1 vez al día"
             />
           </div>
         ),
@@ -244,8 +288,11 @@ export default function Medicaciones() {
                 value={value || ""}
                 onChange={onChange}
                 className={className}
-                placeholder="Ej: 30"
+                placeholder="Ej: 30, 60, 90"
               />
+              <small className="text-muted d-block mt-1">
+                Cantidad aproximada de unidades que el paciente consume mensualmente
+              </small>
             </div>
           );
         },
@@ -270,6 +317,11 @@ export default function Medicaciones() {
                 <option value="geriatrico">Geriátrico</option>
                 <option value="paciente">Paciente</option>
               </select>
+              <small className="text-muted d-block mt-1">
+                {value === 'geriatrico' && '💡 Descontará del stock del geriátrico'}
+                {value === 'paciente' && '💡 Descontará del stock personal del paciente'}
+                {value === 'obra_social' && '💡 Solo registro, no afecta stock'}
+              </small>
             </div>
           );
         },
@@ -283,11 +335,14 @@ export default function Medicaciones() {
               onChange={onChange}
               className={className}
             />
+            <small className="text-muted d-block mt-1">
+              Fecha de inicio del tratamiento
+            </small>
           </div>
         ),
         fecha_fin: ({ name, value, onChange, className }) => (
           <div>
-            <label className="form-label fw-bold">Fecha Fin</label>
+            <label className="form-label fw-bold">Fecha Fin (opcional)</label>
             <input
               type="date"
               name={name}
@@ -295,6 +350,9 @@ export default function Medicaciones() {
               onChange={onChange}
               className={className}
             />
+            <small className="text-muted d-block mt-1">
+              Dejar vacío si el tratamiento es indefinido
+            </small>
           </div>
         ),
         observaciones: ({ name, value, onChange, className }) => (

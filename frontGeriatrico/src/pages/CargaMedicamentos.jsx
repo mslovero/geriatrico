@@ -134,7 +134,7 @@ export default function CargaMedicamentos() {
             </div>
             <div className="card-body p-4">
               <div className="mb-3">
-                <label className="form-label small fw-bold text-muted">Paciente</label>
+                <label className="form-label fw-bold">Paciente *</label>
                 <PatientSelect
                   name="paciente_id"
                   value={pacienteId}
@@ -192,6 +192,9 @@ export default function CargaMedicamentos() {
                         <option value="diaria">Diaria (Crónica)</option>
                         <option value="sos">SOS (Dolor/Ocasional)</option>
                     </select>
+                    <small className="text-muted d-block mt-1">
+                        Diaria: medicación de uso continuo. SOS: medicación de uso ocasional según necesidad
+                    </small>
                 </div>
 
                 {/* NUEVO: Selector de Origen de Pago */}
@@ -226,12 +229,26 @@ export default function CargaMedicamentos() {
                             className="form-control"
                         >
                             <option value="">Sin vincular</option>
-                            {stockItems.map((item) => (
-                                <option key={item.id} value={item.id}>
-                                    {item.nombre} - Stock: {item.stock_actual} {item.unidad_medida}
-                                </option>
-                            ))}
+                            {stockItems.map((item) => {
+                                const stockBajo = item.stock_actual <= item.stock_minimo;
+                                return (
+                                    <option key={item.id} value={item.id}>
+                                        {item.nombre} - Stock: {item.stock_actual} {item.unidad_medida}
+                                        {stockBajo ? ' ⚠️ STOCK BAJO' : ''}
+                                    </option>
+                                );
+                            })}
                         </select>
+                        {form.stock_item_id && (() => {
+                            const selectedItem = stockItems.find(i => i.id == form.stock_item_id);
+                            if (selectedItem && selectedItem.stock_actual <= selectedItem.stock_minimo) {
+                                return (
+                                    <div className="alert alert-warning mt-2 mb-0 small">
+                                        <strong>⚠️ Stock Bajo:</strong> Este medicamento tiene stock por debajo del mínimo recomendado ({selectedItem.stock_minimo} {selectedItem.unidad_medida}). Considere realizar un pedido.
+                                    </div>
+                                );
+                            }
+                        })()}
                     </div>
                 )}
 
@@ -245,8 +262,11 @@ export default function CargaMedicamentos() {
                             value={form.cantidad_mensual}
                             onChange={handleChange}
                             className="form-control"
-                            placeholder="Ej: 30"
+                            placeholder="Ej: 30, 60, 90"
                         />
+                        <small className="text-muted d-block mt-1">
+                            Estimación de unidades consumidas por mes
+                        </small>
                     </div>
                 )}
 

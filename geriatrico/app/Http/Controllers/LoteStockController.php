@@ -27,44 +27,50 @@ class LoteStockController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'stock_item_id' => 'required|exists:stock_items,id',
-            'numero_lote' => 'required|string',
-            'fecha_vencimiento' => 'required|date',
-            'cantidad_inicial' => 'required|numeric|min:0.01',
-            'tipo_cantidad' => 'in:base,presentacion', // base = pastillas, presentacion = blisters
+            'numero_lote' => 'required|string|max:100',
+            'fecha_vencimiento' => 'required|date|after:today',
+            'cantidad_inicial' => 'required|integer|min:1',
+            'tipo_cantidad' => 'nullable|in:base,presentacion',
             'precio_compra' => 'nullable|numeric|min:0',
+            'proveedor_factura' => 'nullable|string|max:255',
+            'observaciones' => 'nullable|string',
         ]);
 
-        return DB::transaction(function () use ($request) {
-            $stockItem = StockItem::findOrFail($request->stock_item_id);
-            
+        return DB::transaction(function () use ($validated) {
+            $stockItem = StockItem::findOrFail($validated['stock_item_id']);
+
             // Convertir cantidad a unidad base si viene en presentación
-            $cantidadInicialBase = $request->cantidad_inicial;
-            $tipoCantidad = $request->tipo_cantidad ?? 'base';
-            
+            $cantidadInicialBase = $validated['cantidad_inicial'];
+            $tipoCantidad = $validated['tipo_cantidad'] ?? 'base';
+
             if ($tipoCantidad === 'presentacion' && $stockItem->tieneConversion()) {
-                $cantidadInicialBase = $stockItem->convertirPresentacionABase($request->cantidad_inicial);
-                
-                // Opcional: agregar observación sobre la conversión
-                $observacionConversion = "Registrado: {$request->cantidad_inicial} {$stockItem->unidad_presentacion} = {$cantidadInicialBase} {$stockItem->unidad_medida}";
+                $cantidadInicialBase = $stockItem->convertirPresentacionABase($validated['cantidad_inicial']);
+
+                // Agregar observación sobre la conversión
+                $observacionConversion = "Registrado: {$validated['cantidad_inicial']} {$stockItem->unidad_presentacion} = {$cantidadInicialBase} {$stockItem->unidad_medida}";
             }
-            
+
             $lote = LoteStock::create([
-                ...$request->except(['tipo_cantidad']),
+                'stock_item_id' => $validated['stock_item_id'],
+                'numero_lote' => $validated['numero_lote'],
+                'fecha_vencimiento' => $validated['fecha_vencimiento'],
+                'precio_compra' => $validated['precio_compra'] ?? null,
+                'proveedor_factura' => $validated['proveedor_factura'] ?? null,
                 'cantidad_inicial' => $cantidadInicialBase,
                 'cantidad_actual' => $cantidadInicialBase,
                 'fecha_ingreso' => now(),
                 'estado' => 'activo',
-                'observaciones' => $request->observaciones 
-                    ? $request->observaciones . (isset($observacionConversion) ? "\n" . $observacionConversion : '')
+                'observaciones' => isset($validated['observaciones']) && $validated['observaciones']
+                    ? $validated['observaciones'] . (isset($observacionConversion) ? "\n" . $observacionConversion : '')
                     : ($observacionConversion ?? null)
             ]);
 
             // Actualizar stock total del item
             $stockAnterior = $stockItem->stock_actual;
             $stockItem->recalcularStock();
-            
+
             // Registrar movimiento de entrada
             MovimientoStock::create([
                 'stock_item_id' => $stockItem->id,
@@ -75,13 +81,13 @@ class LoteStockController extends Controller
                 'stock_nuevo' => $stockItem->stock_actual,
                 'motivo' => 'compra_lote',
                 'user_id' => auth()->id(),
-                'precio_total' => $request->precio_compra ? ($request->precio_compra * $cantidadInicialBase) : null,
-                'observaciones' => isset($observacionConversion) 
+                'precio_total' => isset($validated['precio_compra']) ? ($validated['precio_compra'] * $cantidadInicialBase) : null,
+                'observaciones' => isset($observacionConversion)
                     ? "Ingreso Lote: {$lote->numero_lote} - {$observacionConversion}"
                     : "Ingreso Lote: {$lote->numero_lote}"
             ]);
 
-            return response()->json($lote, 201);
+            return response()->json($lote->load('stockItem'), 201);
         });
     }
 
@@ -92,15 +98,37 @@ class LoteStockController extends Controller
 
     public function update(Request $request, $id)
     {
+        $validated = $request->validate([
+            'numero_lote' => 'sometimes|required|string|max:100',
+            'fecha_vencimiento' => 'sometimes|required|date',
+            'cantidad_actual' => 'sometimes|required|integer|min:0',
+            'precio_compra' => 'nullable|numeric|min:0',
+            'proveedor_factura' => 'nullable|string|max:255',
+            'observaciones' => 'nullable|string',
+            'estado' => 'sometimes|required|in:activo,vencido,agotado',
+        ]);
+
         $lote = LoteStock::findOrFail($id);
-        $lote->update($request->all());
-        
-        // Si cambió la cantidad, recalcular stock total
-        if ($request->has('cantidad_actual')) {
-            $lote->stockItem->recalcularStock();
+
+        // Validar que cantidad_actual no sea mayor a cantidad_inicial
+        $cantidadActual = $validated['cantidad_actual'] ?? $lote->cantidad_actual;
+        if ($cantidadActual > $lote->cantidad_inicial) {
+            return response()->json([
+                'error' => 'La cantidad actual no puede ser mayor a la cantidad inicial del lote'
+            ], 400);
         }
-        
-        return response()->json($lote);
+
+        return DB::transaction(function () use ($lote, $validated) {
+            $lote->update($validated);
+
+            // Si cambió la cantidad, recalcular stock total y actualizar estado
+            if (isset($validated['cantidad_actual'])) {
+                $lote->actualizarEstado();
+                $lote->stockItem->recalcularStock();
+            }
+
+            return response()->json($lote->load('stockItem'));
+        });
     }
 
     public function destroy($id)

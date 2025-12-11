@@ -9,6 +9,7 @@ import {
   CalendarCheck,
 } from "react-bootstrap-icons";
 import { Link } from "react-router-dom";
+import EmptyState from "../components/EmptyState";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -113,18 +114,33 @@ export default function Dashboard() {
 
   return (
     <div className="container-fluid py-2">
-      <div className="d-flex justify-content-between align-items-end mb-5">
-        <div>
+      <div className="row align-items-center mb-5">
+        <div className="col-md-8">
           <h1 className="fw-bold text-gradient mb-2">Panel de Control</h1>
           <p className="text-muted mb-0">
-            Bienvenido al sistema de gestión integral.
+            Bienvenido al sistema de gestión integral del hogar para adultos mayores.
           </p>
         </div>
-        <div className="d-none d-md-block">
-          <Link to="/pacientes" className="btn btn-primary shadow-sm">
-            <i className="bi bi-plus-lg me-2"></i> Nuevo Ingreso
-          </Link>
+        <div className="col-md-4 text-end d-none d-md-block">
+          <svg width="180" height="140" viewBox="0 0 320 280" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.7 }}>
+            <ellipse cx="160" cy="240" rx="140" ry="20" fill="#e3f2fd" opacity="0.4"/>
+            <rect x="80" y="120" width="160" height="120" rx="8" fill="#f5f5f5" stroke="#90caf9" strokeWidth="2"/>
+            <rect x="100" y="140" width="50" height="40" rx="4" fill="#e3f2fd" stroke="#64b5f6" strokeWidth="1"/>
+            <rect x="170" y="140" width="50" height="40" rx="4" fill="#e3f2fd" stroke="#64b5f6" strokeWidth="1"/>
+            <rect x="100" y="190" width="50" height="40" rx="4" fill="#e3f2fd" stroke="#64b5f6" strokeWidth="1"/>
+            <rect x="170" y="190" width="50" height="40" rx="4" fill="#e3f2fd" stroke="#64b5f6" strokeWidth="1"/>
+            <path d="M80 120 L160 60 L240 120" fill="#bbdefb" stroke="#42a5f5" strokeWidth="2"/>
+            <circle cx="200" cy="100" r="8" fill="#fff9c4" stroke="#ffd54f" strokeWidth="2"/>
+            <rect x="145" y="180" width="30" height="50" rx="2" fill="#90caf9"/>
+            <circle cx="160" cy="200" r="3" fill="#1976d2"/>
+          </svg>
         </div>
+      </div>
+
+      <div className="d-md-none mb-3">
+        <Link to="/pacientes" className="btn btn-primary shadow-sm w-100">
+          <i className="bi bi-plus-lg me-2"></i> Nuevo Ingreso
+        </Link>
       </div>
 
       <div className="row g-4 mb-5">

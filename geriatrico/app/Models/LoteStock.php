@@ -85,13 +85,24 @@ class LoteStock extends Model
     // Descontar cantidad
     public function descontar($cantidad)
     {
-        if ($this->cantidad_actual < $cantidad) {
-            throw new \Exception("Stock insuficiente en lote {$this->numero_lote}");
+        // Validar que la cantidad sea positiva
+        if ($cantidad <= 0) {
+            throw new \Exception("La cantidad a descontar debe ser mayor a cero");
         }
-        
+
+        // Validar que sea un número entero
+        if (!is_numeric($cantidad) || floor($cantidad) != $cantidad) {
+            throw new \Exception("La cantidad a descontar debe ser un número entero");
+        }
+
+        // Validar stock suficiente
+        if ($this->cantidad_actual < $cantidad) {
+            throw new \Exception("Stock insuficiente en lote {$this->numero_lote}. Disponible: {$this->cantidad_actual}, Solicitado: {$cantidad}");
+        }
+
         $this->cantidad_actual -= $cantidad;
         $this->actualizarEstado();
-        
+
         return $this;
     }
 }

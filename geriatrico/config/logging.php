@@ -127,6 +127,31 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        // Canales personalizados para auditoría y validaciones
+        'validation_failures' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/validation-failures.log'),
+            'level' => 'warning',
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
+        'security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/security.log'),
+            'level' => 'warning',
+            'days' => 90,
+            'replace_placeholders' => true,
+        ],
+
+        'stock_audit' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/stock-audit.log'),
+            'level' => 'info',
+            'days' => 365,
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

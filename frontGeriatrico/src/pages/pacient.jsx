@@ -232,7 +232,7 @@ export default function Pacientes() {
               <div className="card bg-light border-0 p-3">
                 <div className="row g-3">
                   <div className="col-md-6">
-                    <label className="form-label fw-bold small">Nombre Contacto</label>
+                    <label className="form-label fw-bold">Nombre Contacto</label>
                     <input
                       type="text"
                       placeholder="Nombre completo"
@@ -250,7 +250,7 @@ export default function Pacientes() {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label fw-bold small">Teléfono Contacto</label>
+                    <label className="form-label fw-bold">Teléfono Contacto</label>
                     <input
                       type="text"
                       placeholder="Teléfono"

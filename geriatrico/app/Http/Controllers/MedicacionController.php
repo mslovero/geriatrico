@@ -258,9 +258,62 @@ class MedicacionController extends Controller
      */
      public function update(Request $request, $id)
     {
+        $validated = $request->validate([
+            'nombre' => 'sometimes|required|string|max:255',
+            'dosis' => 'nullable|string',
+            'frecuencia' => 'nullable|string',
+            'observaciones' => 'nullable|string',
+            'paciente_id' => 'sometimes|required|exists:pacientes,id',
+            'tipo' => 'sometimes|in:diaria,sos',
+            'cantidad_mensual' => 'nullable|integer|min:0',
+            'fecha_inicio' => 'nullable|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'origen_pago' => 'sometimes|required|in:obra_social,geriatrico,paciente',
+            'stock_item_id' => 'nullable|exists:stock_items,id',
+        ]);
+
         $medicacion = Medicacion::findOrFail($id);
-        $medicacion->update($request->all());
-        return response()->json($medicacion);
+
+        // Obtener valores actuales o nuevos para validación
+        $origenPago = $validated['origen_pago'] ?? $medicacion->origen_pago;
+        $stockItemId = $validated['stock_item_id'] ?? $medicacion->stock_item_id;
+        $pacienteId = $validated['paciente_id'] ?? $medicacion->paciente_id;
+
+        // Si hay stock vinculado, validar consistencia de propiedad
+        if ($stockItemId && $origenPago !== 'obra_social') {
+            $stockItem = \App\Models\StockItem::find($stockItemId);
+
+            if (!$stockItem) {
+                return response()->json([
+                    'error' => 'El item de stock vinculado no existe'
+                ], 400);
+            }
+
+            // Validar origen geriátrico
+            if ($origenPago === 'geriatrico' && $stockItem->propiedad !== 'geriatrico') {
+                return response()->json([
+                    'error' => 'El item de stock seleccionado no pertenece al geriátrico'
+                ], 400);
+            }
+
+            // Validar origen paciente
+            if ($origenPago === 'paciente') {
+                if ($stockItem->propiedad !== 'paciente') {
+                    return response()->json([
+                        'error' => 'El item de stock debe tener propiedad "paciente" para medicamentos de paciente'
+                    ], 400);
+                }
+
+                if ($stockItem->paciente_propietario_id != $pacienteId) {
+                    return response()->json([
+                        'error' => 'El item de stock seleccionado no pertenece al paciente asignado'
+                    ], 400);
+                }
+            }
+        }
+
+        $medicacion->update($validated);
+        return response()->json($medicacion->load(['paciente', 'stockItem']));
     }
 
     /**
