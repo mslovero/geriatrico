@@ -141,11 +141,11 @@ export default function Lotes() {
               {/* Mostrar info del item seleccionado */}
               {selectedItem && (
                 <div className="alert alert-info mt-2 mb-0" style={{ fontSize: '0.85rem', padding: '0.5rem' }}>
-                  <strong>📋 Unidad base:</strong> {selectedItem.unidad_medida}
+                  <strong><i className="bi bi-clipboard me-1"></i>Unidad base:</strong> {selectedItem.unidad_medida}
                   {selectedItem.unidad_presentacion && selectedItem.factor_conversion && (
                     <>
                       <br/>
-                      <strong>📦 Presentación:</strong> 1 {selectedItem.unidad_presentacion} = {selectedItem.factor_conversion} {selectedItem.unidad_medida}
+                      <strong><i className="bi bi-box-seam me-1"></i>Presentación:</strong> 1 {selectedItem.unidad_presentacion} = {selectedItem.factor_conversion} {selectedItem.unidad_medida}
                     </>
                   )}
                 </div>
@@ -260,7 +260,7 @@ export default function Lotes() {
             const cantidadBase = value * selectedItem.factor_conversion;
             equivalencia = (
               <div className="alert alert-success mt-2 mb-0" style={{ padding: '0.5rem', fontSize: '0.9rem' }}>
-                ✓ Se almacenarán <strong>{cantidadBase} {selectedItem.unidad_medida}</strong>
+                <i className="bi bi-check-lg me-1"></i>Se almacenarán <strong>{cantidadBase} {selectedItem.unidad_medida}</strong>
               </div>
             );
           }

@@ -208,7 +208,7 @@ export default function Medicaciones() {
               <div className="d-flex justify-content-between align-items-center mt-1">
                 <small className="text-muted">
                   {form.stock_item_id
-                    ? "✅ Vinculado a stock"
+                    ? <><i className="bi bi-check-circle-fill text-success me-1"></i>Vinculado a stock</>
                     : form.origen_pago === 'geriatrico'
                     ? "Mostrando solo stock del geriátrico"
                     : form.origen_pago === 'paciente'
@@ -318,9 +318,9 @@ export default function Medicaciones() {
                 <option value="paciente">Paciente</option>
               </select>
               <small className="text-muted d-block mt-1">
-                {value === 'geriatrico' && '💡 Descontará del stock del geriátrico'}
-                {value === 'paciente' && '💡 Descontará del stock personal del paciente'}
-                {value === 'obra_social' && '💡 Solo registro, no afecta stock'}
+                {value === 'geriatrico' && <><i className="bi bi-lightbulb me-1"></i>Descontará del stock del geriátrico</>}
+                {value === 'paciente' && <><i className="bi bi-lightbulb me-1"></i>Descontará del stock personal del paciente</>}
+                {value === 'obra_social' && <><i className="bi bi-lightbulb me-1"></i>Solo registro, no afecta stock</>}
               </small>
             </div>
           );

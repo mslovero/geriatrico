@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Incidencia;
+use App\Models\Notification;
+use App\Models\Paciente;
 use Illuminate\Http\Request;
 
 class IncidenciaController extends Controller
@@ -32,6 +34,24 @@ class IncidenciaController extends Controller
         }
 
         $incidencia = Incidencia::create($validated);
+        
+        // Crear notificación automática
+        try {
+            $paciente = Paciente::find($validated['paciente_id']);
+            if ($paciente) {
+                Notification::create([
+                    'tipo' => 'incidencia',
+                    'titulo' => 'Nueva Incidencia: ' . ucfirst($validated['severidad']),
+                    'mensaje' => "{$paciente->nombre} {$paciente->apellido}: {$validated['descripcion']}",
+                    'enlace' => '/incidencias',
+                    'paciente_id' => $paciente->id,
+                    'color' => $validated['severidad'] === 'critica' ? 'danger' : ($validated['severidad'] === 'grave' ? 'warning' : 'info'),
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Log pero no fallar la operación principal
+            \Log::warning('No se pudo crear notificación de incidencia: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Incidencia registrada correctamente',

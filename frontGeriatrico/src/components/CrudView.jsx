@@ -165,33 +165,45 @@ export default function CrudView({
 
                 // Si no hay custom renderer, renderizado standard
                 if (key.toLowerCase().includes("fecha")) {
+                  const inputId = `field-${key}`;
                   return (
                     <div className={`col-md-${colSize}`} key={key}>
-                      <label className="form-label small text-uppercase fw-bold text-muted">
+                      <label 
+                        htmlFor={inputId}
+                        className="form-label small text-uppercase fw-bold text-muted"
+                      >
                         {label}
                       </label>
                       <input
+                        id={inputId}
                         type="date"
                         name={key}
                         value={form[key] || ""}
                         onChange={handleChange}
                         className="form-control"
+                        aria-label={label}
                       />
                     </div>
                   );
                 }
 
+                const inputId = `field-${key}`;
                 return (
                   <div className={`col-md-${colSize}`} key={key}>
-                    <label className="form-label small text-uppercase fw-bold text-muted">
+                    <label 
+                      htmlFor={inputId}
+                      className="form-label small text-uppercase fw-bold text-muted"
+                    >
                       {label}
                     </label>
                     <input
+                      id={inputId}
                       name={key}
                       value={form[key] || ""}
                       onChange={handleChange}
                       placeholder={`Ingrese ${label.toLowerCase()}`}
                       className="form-control"
+                      aria-label={label}
                     />
                   </div>
                 );

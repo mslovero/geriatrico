@@ -67,7 +67,7 @@ export default function AdministrarMedicacionModal({ show, onHide, medicacion, o
                     <div className="modal-content shadow-lg border-0">
                         <div className="modal-header bg-light border-bottom-0">
                             <h5 className="modal-title fw-bold text-primary">
-                                💊 Administrar Medicación
+                                <i className="bi bi-capsule me-2"></i>Administrar Medicación
                             </h5>
                             <button type="button" className="btn-close" onClick={onHide}></button>
                         </div>

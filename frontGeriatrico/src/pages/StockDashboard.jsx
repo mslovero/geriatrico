@@ -104,10 +104,10 @@ export default function StockDashboard() {
         </div>
         <div className="d-none d-md-flex gap-2">
           <Link to="/stock/lotes" className="btn btn-outline-secondary shadow-sm">
-            📦 Gestionar Lotes
+            <i className="bi bi-box-seam me-1"></i> Gestionar Lotes
           </Link>
           <Link to="/stock/reportes" className="btn btn-outline-primary shadow-sm">
-            📊 Ver Reportes
+            <i className="bi bi-graph-up me-1"></i> Ver Reportes
           </Link>
           <Link to="/stock/items" className="btn btn-primary shadow-sm">
             <Plus size={20} className="me-2" />
@@ -251,7 +251,7 @@ export default function StockDashboard() {
                                 <span className={`badge ${isVencido ? 'bg-dark' : isCritico ? 'bg-danger' : 'bg-warning text-dark'}`}>
                                   {fecha.toLocaleDateString("es-AR")}
                                   {!isVencido && ` (${diasRestantes}d)`}
-                                  {isVencido && ' ⚠️ VENCIDO'}
+                                  {isVencido && <><i className="bi bi-exclamation-triangle-fill ms-1"></i> VENCIDO</>}
                                 </span>
                               </td>
                             </tr>

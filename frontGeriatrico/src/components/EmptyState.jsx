@@ -11,7 +11,11 @@ export default function EmptyState({ type = 'no-data', title, message, action })
         <circle cx="100" cy="100" r="80" fill="#f8f9fa" stroke="#dee2e6" strokeWidth="2"/>
         <path d="M70 90 L90 110 L130 70" stroke="#0d6efd" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.3"/>
         <circle cx="100" cy="100" r="50" fill="none" stroke="#dee2e6" strokeWidth="2" strokeDasharray="5,5"/>
-        <text x="100" y="105" fontSize="48" fill="#adb5bd" textAnchor="middle" fontFamily="system-ui">📋</text>
+        <foreignObject x="80" y="80" width="40" height="40">
+            <div xmlns="http://www.w3.org/1999/xhtml" className="d-flex justify-content-center align-items-center h-100">
+                <i className="bi bi-clipboard fs-1" style={{color: '#adb5bd'}}></i>
+            </div>
+        </foreignObject>
       </svg>
     ),
     'no-patients': (
@@ -20,7 +24,11 @@ export default function EmptyState({ type = 'no-data', title, message, action })
         <circle cx="110" cy="85" r="25" fill="#e3f2fd" stroke="#90caf9" strokeWidth="2"/>
         <path d="M70 150 Q110 130 150 150" fill="#e3f2fd" stroke="#90caf9" strokeWidth="2"/>
         <circle cx="110" cy="85" r="15" fill="#bbdefb"/>
-        <text x="110" y="92" fontSize="20" fill="#64b5f6" textAnchor="middle" fontFamily="system-ui">👤</text>
+        <foreignObject x="90" y="72" width="40" height="40">
+            <div xmlns="http://www.w3.org/1999/xhtml" className="d-flex justify-content-center align-items-center h-100">
+                <i className="bi bi-person fs-3" style={{color: '#64b5f6'}}></i>
+            </div>
+        </foreignObject>
       </svg>
     ),
     'no-stock': (
@@ -28,7 +36,11 @@ export default function EmptyState({ type = 'no-data', title, message, action })
         <circle cx="110" cy="110" r="90" fill="#fff8e1" opacity="0.5"/>
         <rect x="75" y="75" width="70" height="70" rx="8" fill="#fff3e0" stroke="#ffb74d" strokeWidth="2"/>
         <rect x="85" y="85" width="50" height="50" rx="4" fill="#ffe0b2" stroke="#ffa726" strokeWidth="1" strokeDasharray="3,3"/>
-        <text x="110" y="120" fontSize="32" fill="#ff9800" textAnchor="middle" fontFamily="system-ui">📦</text>
+        <foreignObject x="90" y="95" width="40" height="40">
+            <div xmlns="http://www.w3.org/1999/xhtml" className="d-flex justify-content-center align-items-center h-100">
+                <i className="bi bi-box-seam fs-1" style={{color: '#ff9800'}}></i>
+            </div>
+        </foreignObject>
       </svg>
     ),
     'success': (
@@ -36,7 +48,11 @@ export default function EmptyState({ type = 'no-data', title, message, action })
         <circle cx="110" cy="110" r="90" fill="#e8f5e9" opacity="0.5"/>
         <circle cx="110" cy="110" r="60" fill="#c8e6c9" stroke="#66bb6a" strokeWidth="2"/>
         <path d="M85 110 L100 125 L135 90" stroke="#2e7d32" strokeWidth="4" strokeLinecap="round" fill="none"/>
-        <text x="110" y="175" fontSize="16" fill="#388e3c" textAnchor="middle" fontFamily="system-ui">✓</text>
+        <foreignObject x="90" y="150" width="40" height="40">
+            <div xmlns="http://www.w3.org/1999/xhtml" className="d-flex justify-content-center align-items-center h-100">
+                <i className="bi bi-check-lg" style={{color: '#388e3c', fontSize: '16px'}}></i>
+            </div>
+        </foreignObject>
       </svg>
     ),
     'medical-care': (

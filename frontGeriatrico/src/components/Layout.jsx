@@ -1,15 +1,48 @@
-import { useState } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { useAuth } from "../context/AuthContext";
+import ThemeToggle from "./ThemeToggle";
+import useNotifications from "../hooks/useNotifications";
 
 const Layout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef(null);
+
+  // Hook de notificaciones
+  const {
+    notificaciones,
+    totalNoLeidas,
+    loading: loadingNotificaciones,
+    marcarLeida,
+    marcarTodasLeidas,
+    formatearTiempoRelativo,
+    getColorClass,
+    getIcono,
+  } = useNotifications(30000); // Polling cada 30 segundos
 
   const { logout, user } = useAuth();
+
+  // Cerrar dropdown de notificaciones al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
 
   const isActive = (path) => {
     return (
@@ -205,114 +238,149 @@ const Layout = () => {
               </span>
             </div>
             <div className="vr d-none d-md-block mx-2"></div>
-            <div className="position-relative">
+            <ThemeToggle />
+            <div className="position-relative" ref={notificationRef}>
               <button
                 className="btn btn-light border-0 shadow-sm rounded-circle position-relative"
                 style={{ width: "40px", height: "40px" }}
                 onClick={() => setShowNotifications(!showNotifications)}
+                aria-label="Notificaciones"
               >
                 <i className="bi bi-bell"></i>
-                <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                  <span className="visually-hidden">New alerts</span>
-                </span>
+                {totalNoLeidas > 0 && (
+                  <span 
+                    className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                    style={{ fontSize: '0.65rem', minWidth: '18px' }}
+                  >
+                    {totalNoLeidas > 99 ? '99+' : totalNoLeidas}
+                    <span className="visually-hidden">notificaciones nuevas</span>
+                  </span>
+                )}
               </button>
 
               {showNotifications && (
                 <div
-                  className="position-absolute end-0 mt-2 bg-white rounded-3 shadow-xl border border-light overflow-hidden fade-in"
-                  style={{ width: "320px", zIndex: 1050, top: "100%" }}
+                  className="position-absolute end-0 mt-2 rounded-3 shadow-xl border overflow-hidden fade-in"
+                  style={{ width: "360px", zIndex: 1050, top: "100%", backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)' }}
                 >
-                  <div className="p-3 border-bottom bg-surface d-flex justify-content-between align-items-center">
-                    <h6 className="m-0 fw-bold text-dark">Notificaciones</h6>
-                    <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill">
-                      3 Nuevas
-                    </span>
+                  <div className="p-3 border-bottom d-flex justify-content-between align-items-center" style={{ backgroundColor: 'var(--bg-muted)', borderColor: 'var(--border-color)' }}>
+                    <h6 className="m-0 fw-bold" style={{ color: 'var(--text-primary)' }}>Notificaciones</h6>
+                    <div className="d-flex align-items-center gap-2">
+                      {totalNoLeidas > 0 && (
+                        <>
+                          <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill">
+                            {totalNoLeidas} Nueva{totalNoLeidas !== 1 ? 's' : ''}
+                          </span>
+                          <button 
+                            className="btn btn-link btn-sm text-primary p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              marcarTodasLeidas();
+                            }}
+                            title="Marcar todas como leídas"
+                          >
+                            <i className="bi bi-check2-all"></i>
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
+                  
                   <div
                     className="list-group list-group-flush"
-                    style={{ maxHeight: "300px", overflowY: "auto" }}
+                    style={{ maxHeight: "350px", overflowY: "auto" }}
                   >
-                    <a
-                      href="#"
-                      className="list-group-item list-group-item-action p-3 border-bottom-0 border-top-0 border-start-0 border-end-0"
-                    >
-                      <div className="d-flex align-items-start">
-                        <div className="bg-warning bg-opacity-10 text-warning rounded-circle p-2 me-3">
-                          <i className="bi bi-exclamation-triangle-fill"></i>
-                        </div>
-                        <div>
-                          <p className="mb-1 small fw-bold text-dark">
-                            Incidencia Reportada
-                          </p>
-                          <p className="mb-1 small text-muted">
-                            Paciente Juan Pérez presentó fiebre alta.
-                          </p>
-                          <small
-                            className="text-muted"
-                            style={{ fontSize: "0.7rem" }}
-                          >
-                            Hace 10 min
-                          </small>
+                    {loadingNotificaciones ? (
+                      <div className="p-4 text-center">
+                        <div className="spinner-border spinner-border-sm text-primary" role="status">
+                          <span className="visually-hidden">Cargando...</span>
                         </div>
                       </div>
-                    </a>
-                    <a
-                      href="#"
-                      className="list-group-item list-group-item-action p-3 border-bottom-0 border-start-0 border-end-0"
-                    >
-                      <div className="d-flex align-items-start">
-                        <div className="bg-info bg-opacity-10 text-info rounded-circle p-2 me-3">
-                          <i className="bi bi-capsule"></i>
-                        </div>
-                        <div>
-                          <p className="mb-1 small fw-bold text-dark">
-                            Recordatorio de Medicación
-                          </p>
-                          <p className="mb-1 small text-muted">
-                            Pendiente administración turno tarde.
-                          </p>
-                          <small
-                            className="text-muted"
-                            style={{ fontSize: "0.7rem" }}
+                    ) : notificaciones.length > 0 ? (
+                      notificaciones.slice(0, 10).map((notif) => {
+                        const colorClass = getColorClass(notif.tipo, notif.color);
+                        const iconoClass = getIcono(notif.tipo, notif.icono);
+                        
+                        return (
+                          <div
+                            key={notif.id}
+                            className={`list-group-item list-group-item-action p-3 ${!notif.leida ? 'border-start border-primary border-3' : ''}`}
+                            style={{ 
+                              cursor: 'pointer',
+                              backgroundColor: !notif.leida ? 'var(--bg-hover)' : 'transparent'
+                            }}
+                            onClick={() => {
+                              if (!notif.leida) {
+                                marcarLeida(notif.id);
+                              }
+                              if (notif.enlace) {
+                                navigate(notif.enlace);
+                                setShowNotifications(false);
+                              }
+                            }}
                           >
-                            Hace 30 min
-                          </small>
-                        </div>
+                            <div className="d-flex align-items-start">
+                              <div 
+                                className={`bg-${colorClass} bg-opacity-10 text-${colorClass} rounded-circle p-2 me-3 d-flex align-items-center justify-content-center`}
+                                style={{ width: '36px', height: '36px', minWidth: '36px' }}
+                              >
+                                <i className={`bi ${iconoClass}`}></i>
+                              </div>
+                              <div className="flex-grow-1 overflow-hidden">
+                                <p className="mb-1 small fw-bold" style={{ color: 'var(--text-primary)' }}>
+                                  {notif.titulo}
+                                </p>
+                                <p 
+                                  className="mb-1 small text-truncate" 
+                                  style={{ color: 'var(--text-secondary)', maxWidth: '250px' }}
+                                  title={notif.mensaje}
+                                >
+                                  {notif.mensaje}
+                                </p>
+                                <small
+                                  style={{ fontSize: "0.7rem", color: 'var(--text-muted)' }}
+                                >
+                                  {formatearTiempoRelativo(notif.created_at)}
+                                  {notif.paciente && (
+                                    <span className="ms-2">
+                                      • {notif.paciente.nombre} {notif.paciente.apellido}
+                                    </span>
+                                  )}
+                                </small>
+                              </div>
+                              {!notif.leida && (
+                                <div 
+                                  className="bg-primary rounded-circle ms-2"
+                                  style={{ width: '8px', height: '8px', minWidth: '8px' }}
+                                  title="No leída"
+                                ></div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="p-4 text-center">
+                        <i className="bi bi-bell-slash fs-1 text-muted mb-2 d-block opacity-50"></i>
+                        <p className="small text-muted mb-0">No hay notificaciones</p>
                       </div>
-                    </a>
-                    <a
-                      href="#"
-                      className="list-group-item list-group-item-action p-3 border-bottom-0 border-start-0 border-end-0"
-                    >
-                      <div className="d-flex align-items-start">
-                        <div className="bg-success bg-opacity-10 text-success rounded-circle p-2 me-3">
-                          <i className="bi bi-person-check-fill"></i>
-                        </div>
-                        <div>
-                          <p className="mb-1 small fw-bold text-dark">
-                            Nuevo Ingreso
-                          </p>
-                          <p className="mb-1 small text-muted">
-                            Se ha registrado un nuevo paciente.
-                          </p>
-                          <small
-                            className="text-muted"
-                            style={{ fontSize: "0.7rem" }}
-                          >
-                            Hace 2 horas
-                          </small>
-                        </div>
-                      </div>
-                    </a>
+                    )}
                   </div>
-                  <div className="p-2 text-center bg-light border-top">
-                    <a
-                      href="#"
-                      className="small text-decoration-none text-primary fw-bold"
-                    >
-                      Ver todas
-                    </a>
-                  </div>
+                  
+                  {notificaciones.length > 0 && (
+                    <div className="p-2 text-center border-top" style={{ backgroundColor: 'var(--bg-muted)', borderColor: 'var(--border-color)' }}>
+                      <button
+                        onClick={() => {
+                          marcarTodasLeidas();
+                          setShowNotifications(false);
+                        }}
+                        className="btn btn-link btn-sm text-decoration-none text-primary fw-bold"
+                      >
+                        <i className="bi bi-check2-all me-1"></i>
+                        Marcar todas como leídas
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

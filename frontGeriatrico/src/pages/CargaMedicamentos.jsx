@@ -207,14 +207,14 @@ export default function CargaMedicamentos() {
                         className="form-control"
                         required
                     >
-                        <option value="geriatrico">🟢 Geriátrico</option>
-                        <option value="obra_social">🔵 Obra Social</option>
-                        <option value="paciente">🟡 Paciente</option>
+                        <option value="geriatrico">Geriátrico</option>
+                        <option value="obra_social">Obra Social</option>
+                        <option value="paciente">Paciente</option>
                     </select>
                     <small className="text-muted d-block mt-1">
-                        {form.origen_pago === 'geriatrico' && '💡 Descontará del stock del geriátrico'}
-                        {form.origen_pago === 'paciente' && '💡 Descontará del stock del paciente'}
-                        {form.origen_pago === 'obra_social' && '💡 Solo registro, no afecta stock'}
+                        {form.origen_pago === 'geriatrico' && <><i className="bi bi-lightbulb text-primary me-1"></i> Descontará del stock del geriátrico</>}
+                        {form.origen_pago === 'paciente' && <><i className="bi bi-lightbulb text-primary me-1"></i> Descontará del stock del paciente</>}
+                        {form.origen_pago === 'obra_social' && <><i className="bi bi-lightbulb text-primary me-1"></i> Solo registro, no afecta stock</>}
                     </small>
                 </div>
 
@@ -234,7 +234,7 @@ export default function CargaMedicamentos() {
                                 return (
                                     <option key={item.id} value={item.id}>
                                         {item.nombre} - Stock: {item.stock_actual} {item.unidad_medida}
-                                        {stockBajo ? ' ⚠️ STOCK BAJO' : ''}
+                                        {stockBajo ? ' (STOCK BAJO)' : ''}
                                     </option>
                                 );
                             })}
@@ -244,7 +244,7 @@ export default function CargaMedicamentos() {
                             if (selectedItem && selectedItem.stock_actual <= selectedItem.stock_minimo) {
                                 return (
                                     <div className="alert alert-warning mt-2 mb-0 small">
-                                        <strong>⚠️ Stock Bajo:</strong> Este medicamento tiene stock por debajo del mínimo recomendado ({selectedItem.stock_minimo} {selectedItem.unidad_medida}). Considere realizar un pedido.
+                                        <strong><i className="bi bi-exclamation-triangle-fill me-1"></i>Stock Bajo:</strong> Este medicamento tiene stock por debajo del mínimo recomendado ({selectedItem.stock_minimo} {selectedItem.unidad_medida}). Considere realizar un pedido.
                                     </div>
                                 );
                             }
@@ -344,17 +344,17 @@ export default function CargaMedicamentos() {
                                         <td>
                                             {med.origen_pago === 'geriatrico' && (
                                                 <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
-                                                    🟢 Geriátrico
+                                                    <i className="bi bi-circle-fill me-1" style={{fontSize: '0.5rem'}}></i> Geriátrico
                                                 </span>
                                             )}
                                             {med.origen_pago === 'obra_social' && (
                                                 <span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
-                                                    🔵 Obra Social
+                                                    <i className="bi bi-circle-fill me-1" style={{fontSize: '0.5rem'}}></i> Obra Social
                                                 </span>
                                             )}
                                             {med.origen_pago === 'paciente' && (
                                                 <span className="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
-                                                    🟡 Paciente
+                                                    <i className="bi bi-circle-fill me-1" style={{fontSize: '0.5rem'}}></i> Paciente
                                                 </span>
                                             )}
                                         </td>

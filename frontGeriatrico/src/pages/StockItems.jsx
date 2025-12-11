@@ -58,14 +58,14 @@ export default function StockItems() {
         if (value === "geriatrico") {
           return (
             <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
-              🟢 Geriátrico
+              <i className="bi bi-circle-fill me-1" style={{fontSize: '0.5rem'}}></i> Geriátrico
             </span>
           );
         }
         if (value === "paciente" && item.paciente_propietario) {
           return (
             <span className="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
-              🟡 {item.paciente_propietario.nombre} {item.paciente_propietario.apellido}
+              <i className="bi bi-circle-fill me-1" style={{fontSize: '0.5rem'}}></i> {item.paciente_propietario.nombre} {item.paciente_propietario.apellido}
             </span>
           );
         }
@@ -304,7 +304,7 @@ export default function StockItems() {
               </small>
               {value && parseFloat(value) < 2 && (
                 <small className="text-danger d-block mt-1">
-                  ⚠️ El factor debe ser mayor o igual a 2 (mínimo 2 unidades por presentación)
+                  <i className="bi bi-exclamation-triangle-fill me-1"></i>El factor debe ser mayor o igual a 2 (mínimo 2 unidades por presentación)
                 </small>
               )}
             </div>
@@ -363,7 +363,7 @@ export default function StockItems() {
                   readOnly
                 />
                 <small className="text-muted d-block mt-1">
-                  ℹ️ El stock se calcula automáticamente sumando todos los lotes.
+                  <i className="bi bi-info-circle me-1"></i>El stock se calcula automáticamente sumando todos los lotes.
                   Use "Gestión de Lotes" para ingresar stock.
                 </small>
               </div>
@@ -383,7 +383,7 @@ export default function StockItems() {
                 min="0"
               />
               <small className="text-muted d-block mt-1">
-                💡 Si ingresa stock inicial, se creará automáticamente un lote.
+                <i className="bi bi-lightbulb me-1"></i>Si ingresa stock inicial, se creará automáticamente un lote.
                 Recomendado: dejar en 0 y crear lotes después.
               </small>
             </div>
@@ -408,7 +408,7 @@ export default function StockItems() {
                 min={new Date().toISOString().split('T')[0]}
               />
               <small className="text-muted d-block mt-1">
-                📅 Opcional. Si no ingresa, se asignará vencimiento en 2 años.
+                <i className="bi bi-calendar me-1"></i>Opcional. Si no ingresa, se asignará vencimiento en 2 años.
               </small>
             </div>
           );
@@ -445,7 +445,7 @@ export default function StockItems() {
               />
               {isInvalid && (
                 <small className="text-danger d-block mt-1">
-                  ⚠️ El stock máximo debe ser mayor o igual al stock mínimo ({stockMinimo})
+                  <i className="bi bi-exclamation-triangle-fill me-1"></i>El stock máximo debe ser mayor o igual al stock mínimo ({stockMinimo})
                 </small>
               )}
             </div>

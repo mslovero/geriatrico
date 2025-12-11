@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Paciente;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -50,6 +51,19 @@ class PacienteController extends Controller
         // Si se asignó una cama, marcarla como ocupada
         if (isset($data['cama_id'])) {
             \App\Models\Cama::where('id', $data['cama_id'])->update(['estado' => 'ocupada']);
+        }
+
+        // Crear notificación de nuevo ingreso
+        try {
+            Notification::create([
+                'tipo' => 'paciente_nuevo',
+                'titulo' => 'Nuevo Ingreso',
+                'mensaje' => "Se ha registrado el paciente {$paciente->nombre} {$paciente->apellido}",
+                'enlace' => "/pacientes/{$paciente->id}/ficha",
+                'paciente_id' => $paciente->id,
+            ]);
+        } catch (\Exception $e) {
+            \Log::warning('No se pudo crear notificación de nuevo paciente: ' . $e->getMessage());
         }
 
         return response()->json($paciente, 201);

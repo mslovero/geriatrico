@@ -83,14 +83,14 @@ export default function EstadoMedicaciones() {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h1 className="fw-bold text-gradient mb-2">
-            🏥 Estado de Medicaciones
+            <i className="bi bi-hospital me-2"></i>Estado de Medicaciones
           </h1>
           <p className="text-muted mb-0">
             Dashboard profesional de control y alertas
           </p>
         </div>
         <button onClick={fetchEstado} className="btn btn-outline-primary">
-          🔄 Actualizar
+          <i className="bi bi-arrow-clockwise me-1"></i> Actualizar
         </button>
       </div>
 
@@ -275,17 +275,17 @@ export default function EstadoMedicaciones() {
                       <td>
                         {med.origen_pago === "geriatrico" && (
                           <span className="badge bg-success bg-opacity-10 text-success border border-success">
-                            🟢 Geriátrico
+                            <i className="bi bi-circle-fill me-1" style={{fontSize: '0.5rem'}}></i> Geriátrico
                           </span>
                         )}
                         {med.origen_pago === "paciente" && (
                           <span className="badge bg-warning bg-opacity-10 text-warning border border-warning">
-                            🟡 Paciente
+                            <i className="bi bi-circle-fill me-1" style={{fontSize: '0.5rem'}}></i> Paciente
                           </span>
                         )}
                         {med.origen_pago === "obra_social" && (
                           <span className="badge bg-primary bg-opacity-10 text-primary border border-primary">
-                            🔵 Obra Social
+                            <i className="bi bi-circle-fill me-1" style={{fontSize: '0.5rem'}}></i> Obra Social
                           </span>
                         )}
                       </td>

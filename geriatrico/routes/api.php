@@ -81,3 +81,14 @@ Route::prefix('reportes')->group(function () {
     Route::get('resumen-general', [\App\Http\Controllers\ReportesController::class, 'resumenGeneral']);
 });
 
+// 🔹 Notificaciones
+Route::prefix('notificaciones')->group(function () {
+    Route::get('/', [\App\Http\Controllers\NotificationController::class, 'index']);
+    Route::get('no-leidas', [\App\Http\Controllers\NotificationController::class, 'noLeidas']);
+    Route::get('resumen', [\App\Http\Controllers\NotificationController::class, 'resumen']);
+    Route::post('generar', [\App\Http\Controllers\NotificationController::class, 'generarAutomaticas']);
+    Route::post('{id}/marcar-leida', [\App\Http\Controllers\NotificationController::class, 'marcarLeida']);
+    Route::post('marcar-todas-leidas', [\App\Http\Controllers\NotificationController::class, 'marcarTodasLeidas']);
+    Route::delete('{id}', [\App\Http\Controllers\NotificationController::class, 'destroy']);
+    Route::delete('limpiar-antiguas', [\App\Http\Controllers\NotificationController::class, 'limpiarAntiguas']);
+});
