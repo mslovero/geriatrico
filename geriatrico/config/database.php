@@ -99,7 +99,6 @@ return [
             'options' => [
                 PDO::ATTR_TIMEOUT => 5,
                 PDO::ATTR_PERSISTENT => false,
-                PDO::PGSQL_ATTR_SSL_MODE => PDO::PGSQL_SSL_MODE_REQUIRE,
             ],
         ],
 
