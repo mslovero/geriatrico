@@ -3,9 +3,10 @@ set -e
 
 echo "🚀 Iniciando aplicación..."
 
-# Esperar a la base de datos
 echo "⏳ Esperando a la base de datos..."
 
+RETRIES=20
+COUNT=0
 until php -r "
 try {
     new PDO(
@@ -18,8 +19,13 @@ try {
     exit(1);
 }
 "; do
-  echo "⏳ DB no lista, reintentando..."
-  sleep 3
+  COUNT=$((COUNT + 1))
+  if [ "$COUNT" -ge "$RETRIES" ]; then
+    echo "❌ DB no disponible después de $RETRIES intentos. Abortando."
+    exit 1
+  fi
+  echo "⏳ DB no lista, reintentando ($COUNT/$RETRIES)..."
+  sleep 5
 done
 
 echo "✅ Base de datos lista"
