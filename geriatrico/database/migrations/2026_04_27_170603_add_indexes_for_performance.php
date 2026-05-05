@@ -25,8 +25,6 @@ return new class extends Migration
         Schema::table('medicacions', function (Blueprint $table) {
             $table->index('stock_item_id', 'idx_medicacions_stock_item');
             $table->index('paciente_id', 'idx_medicacions_paciente');
-            $table->index('estado', 'idx_medicacions_estado');
-            $table->index(['paciente_id', 'estado'], 'idx_medicacions_paciente_estado');
         });
 
         // Índices para movimientos_stock
@@ -92,8 +90,6 @@ return new class extends Migration
         Schema::table('medicacions', function (Blueprint $table) {
             $table->dropIndex('idx_medicacions_stock_item');
             $table->dropIndex('idx_medicacions_paciente');
-            $table->dropIndex('idx_medicacions_estado');
-            $table->dropIndex('idx_medicacions_paciente_estado');
         });
 
         Schema::table('movimientos_stock', function (Blueprint $table) {
