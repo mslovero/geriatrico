@@ -9,13 +9,15 @@ RETRIES=20
 COUNT=0
 until php -r "
 try {
-    new PDO(
-        'pgsql:host=' . getenv('DB_HOST') . ';port=' . (getenv('DB_PORT') ?: '5432') . ';dbname=' . getenv('DB_DATABASE'),
-        getenv('DB_USERNAME'),
-        getenv('DB_PASSWORD')
-    );
+    \$host = getenv('DB_HOST');
+    \$port = getenv('DB_PORT') ?: '5432';
+    \$db   = getenv('DB_DATABASE');
+    \$user = getenv('DB_USERNAME');
+    echo 'Conectando: pgsql:host=' . \$host . ';port=' . \$port . ';dbname=' . \$db . ' user=' . \$user . PHP_EOL;
+    new PDO('pgsql:host=' . \$host . ';port=' . \$port . ';dbname=' . \$db, \$user, getenv('DB_PASSWORD'));
     echo 'DB OK';
 } catch (Exception \$e) {
+    echo 'Error: ' . \$e->getMessage() . PHP_EOL;
     exit(1);
 }
 "; do
