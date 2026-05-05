@@ -32,8 +32,8 @@ return new class extends Migration
             $table->index('tipo_movimiento', 'idx_movimientos_tipo');
             $table->index('stock_item_id', 'idx_movimientos_stock_item');
             $table->index('paciente_id', 'idx_movimientos_paciente');
-            $table->index('fecha', 'idx_movimientos_fecha');
-            $table->index(['stock_item_id', 'tipo_movimiento', 'fecha'], 'idx_movimientos_reportes');
+            $table->index('created_at', 'idx_movimientos_fecha');
+            $table->index(['stock_item_id', 'tipo_movimiento', 'created_at'], 'idx_movimientos_reportes');
         });
 
         // Índices para lotes_stock
@@ -48,8 +48,8 @@ return new class extends Migration
         Schema::table('registro_medicacions', function (Blueprint $table) {
             $table->index('medicacion_id', 'idx_registro_medicacion');
             $table->index('lote_stock_id', 'idx_registro_lote');
-            $table->index('fecha_administracion', 'idx_registro_fecha');
-            $table->index(['medicacion_id', 'fecha_administracion'], 'idx_registro_historial');
+            $table->index('fecha_hora', 'idx_registro_fecha');
+            $table->index(['medicacion_id', 'fecha_hora'], 'idx_registro_historial');
         });
 
         // Índices para notifications (Corregido: era notificaciones)
@@ -70,8 +70,8 @@ return new class extends Migration
         // Índices para signo_vitals (Corregido: era signos_vitales)
         Schema::table('signo_vitals', function (Blueprint $table) {
             $table->index('paciente_id', 'idx_signos_paciente');
-            $table->index('fecha_registro', 'idx_signos_fecha');
-            $table->index(['paciente_id', 'fecha_registro'], 'idx_signos_seguimiento');
+            $table->index('fecha', 'idx_signos_fecha');
+            $table->index(['paciente_id', 'fecha'], 'idx_signos_seguimiento');
         });
     }
 
