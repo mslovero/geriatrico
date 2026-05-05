@@ -3,6 +3,28 @@ set -e
 
 echo "🚀 Iniciando aplicación..."
 
+# Generar .env desde variables de entorno de Render
+cat > /var/www/html/.env <<EOF
+APP_NAME=Geriatrico
+APP_ENV=${APP_ENV:-production}
+APP_KEY=${APP_KEY}
+APP_DEBUG=${APP_DEBUG:-false}
+APP_URL=${APP_URL:-http://localhost}
+
+LOG_CHANNEL=stderr
+
+DB_CONNECTION=pgsql
+DB_HOST=${DB_HOST}
+DB_PORT=${DB_PORT:-5432}
+DB_DATABASE=${DB_DATABASE}
+DB_USERNAME=${DB_USERNAME}
+DB_PASSWORD=${DB_PASSWORD}
+
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+QUEUE_DRIVER=sync
+EOF
+
 echo "⏳ Esperando a la base de datos..."
 
 RETRIES=20
