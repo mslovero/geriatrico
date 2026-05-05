@@ -5,14 +5,18 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Paciente;
 use App\Models\Notification;
+use App\Http\Requests\StorePacienteRequest;
+use App\Http\Requests\UpdatePacienteRequest;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PacienteController extends Controller
 {
     // 🔹 Listar pacientes (paginado)
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', Paciente::class);
         $query = Paciente::with(['habitacion', 'cama', 'historial_medico', 'medicaciones', 'archivos']);
 
         // Filtrado por estado si se pasa
@@ -27,24 +31,10 @@ class PacienteController extends Controller
     }
 
     // 🔹 Crear nuevo paciente
-    public function store(Request $request)
+    public function store(StorePacienteRequest $request)
     {
-        $data = $request->validate([
-            'nombre' => 'required|string|max:100',
-            'apellido' => 'required|string|max:100',
-            'dni' => 'required|string|unique:pacientes,dni',
-            'fecha_nacimiento' => 'nullable|date',
-            'habitacion_id' => 'nullable|exists:habitaciones,id',
-            'cama_id' => 'nullable|exists:camas,id',
-            'contacto_emergencia' => 'nullable|array',
-            'contacto_emergencia.nombre' => 'required_with:contacto_emergencia|string',
-            'contacto_emergencia.telefono' => 'required_with:contacto_emergencia|string',
-            'medico_cabecera' => 'nullable|string|max:150',
-            'patologias' => 'nullable|string',
-            'estado' => ['nullable', Rule::in([
-                'activo', 'temporal', 'ausente', 'suspendido', 'alta_medica', 'egresado', 'fallecido'
-            ])],
-        ]);
+        Gate::authorize('create', Paciente::class);
+        $data = $request->validated();
 
         $paciente = Paciente::create($data);
 
@@ -87,24 +77,10 @@ class PacienteController extends Controller
     }
 
     // 🔹 Actualizar paciente
-    public function update(Request $request, Paciente $paciente)
+    public function update(UpdatePacienteRequest $request, Paciente $paciente)
     {
-        $data = $request->validate([
-            'nombre' => 'sometimes|string|max:100',
-            'apellido' => 'sometimes|string|max:100',
-            'dni' => ['sometimes','string',Rule::unique('pacientes','dni')->ignore($paciente->id)],
-            'fecha_nacimiento' => 'sometimes|date',
-            'habitacion_id' => 'sometimes|nullable|exists:habitaciones,id',
-            'cama_id' => 'sometimes|nullable|exists:camas,id',
-            'contacto_emergencia' => 'sometimes|array',
-            'contacto_emergencia.nombre' => 'required_with:contacto_emergencia|string',
-            'contacto_emergencia.telefono' => 'required_with:contacto_emergencia|string',
-            'medico_cabecera' => 'sometimes|string|max:150',
-            'patologias' => 'sometimes|nullable|string',
-            'estado' => ['sometimes', Rule::in([
-                'activo', 'temporal', 'ausente', 'suspendido', 'alta_medica', 'egresado', 'fallecido'
-            ])],
-        ]);
+        Gate::authorize('update', $paciente);
+        $data = $request->validated();
 
         // Manejar cambio de cama
         $camaAnterior = $paciente->cama_id;
@@ -129,7 +105,28 @@ class PacienteController extends Controller
     // 🔹 Eliminar paciente (soft delete)
     public function destroy(Paciente $paciente)
     {
+        Gate::authorize('delete', $paciente);
         $paciente->delete();
         return response()->json(['message' => 'Paciente eliminado correctamente.']);
+    }
+
+    // 🔹 Exportar Ficha del Paciente a PDF
+    public function exportPdf($id)
+    {
+        $paciente = Paciente::with([
+            'habitacion', 
+            'cama', 
+            'historial_medico', 
+            'medicaciones', 
+            'signosVitales' => fn($q) => $q->orderBy('fecha', 'desc')->limit(10),
+            'incidencias' => fn($q) => $q->orderBy('fecha_hora', 'desc')->limit(10),
+            'turnosMedicos' => fn($q) => $q->where('fecha_hora', '>', now())->orderBy('fecha_hora', 'asc')
+        ])->findOrFail($id);
+
+        Gate::authorize('view', $paciente);
+
+        $pdf = Pdf::loadView('pdf.ficha-paciente', compact('paciente'));
+        
+        return $pdf->download("Ficha_{$paciente->nombre}_{$paciente->apellido}.pdf");
     }
 }

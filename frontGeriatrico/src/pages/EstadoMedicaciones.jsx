@@ -94,81 +94,94 @@ export default function EstadoMedicaciones() {
         </button>
       </div>
 
-      {/* Panel de Salud General */}
-      <div className="row g-4 mb-4">
-        <div className="col-md-4">
-          <div className={`card border-0 shadow-sm bg-${salud.color} bg-opacity-10`}>
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className={`text-${salud.color} me-3`}>
+      {/* Panel de Salud General - Optimizado Mobile */}
+      <div className="row g-3 g-md-4 mb-4">
+        <div className="col-12 col-md-4">
+          <div className={`card border-0 shadow-sm bg-${salud.color} bg-opacity-10 h-100`}>
+            <div className="card-body p-3 p-md-4">
+              <div className="d-flex align-items-center mb-3">
+                <div className={`text-${salud.color} me-3`} style={{ fontSize: '1.5rem' }}>
                   {salud.icono}
                 </div>
-                <div>
-                  <p className="text-muted small mb-0">Nivel de Salud</p>
-                  <h3 className={`mb-0 fw-bold text-${salud.color}`}>
+                <div className="flex-grow-1">
+                  <p className="text-muted small mb-1">Nivel de Salud</p>
+                  <h3 className={`mb-0 fw-bold text-${salud.color}`} style={{ fontSize: '1.5rem' }}>
                     {salud.nivel}
                   </h3>
                 </div>
               </div>
-              <div className="progress mt-3" style={{ height: "8px" }}>
+              <div className="progress mb-2" style={{ height: "6px" }}>
                 <div
                   className={`progress-bar bg-${salud.color}`}
                   style={{ width: `${(resumen.correctas / resumen.total) * 100}%` }}
                 ></div>
               </div>
-              <small className="text-muted">
+              <small className="text-muted d-block">
                 {resumen.correctas} de {resumen.total} correctas
+                <span className="ms-2 fw-bold">({Math.round((resumen.correctas / resumen.total) * 100)}%)</span>
               </small>
             </div>
           </div>
         </div>
 
-        <div className="col-md-4">
-          <div className="card border-0 shadow-sm bg-danger bg-opacity-10">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="text-danger me-3">
-                  <XCircle size={24} />
+        <div className="col-12 col-md-4">
+          <div className="card border-0 shadow-sm bg-danger bg-opacity-10 h-100">
+            <div className="card-body p-3 p-md-4">
+              <div className="d-flex align-items-center mb-3">
+                <div className="text-danger me-3" style={{ fontSize: '1.5rem' }}>
+                  <XCircle size={28} />
                 </div>
-                <div>
-                  <p className="text-muted small mb-0">Alertas Críticas</p>
-                  <h3 className="mb-0 fw-bold text-danger">
+                <div className="flex-grow-1">
+                  <p className="text-muted small mb-1">Alertas Críticas</p>
+                  <h3 className="mb-0 fw-bold text-danger" style={{ fontSize: '1.8rem' }}>
                     {alertas.criticas}
                   </h3>
                 </div>
               </div>
-              <div className="mt-2 small">
-                <div className="text-muted">
-                  Sin Stock: <span className="fw-bold">{resumen.sin_stock}</span>
+              <div className="row g-2 small">
+                <div className="col-6">
+                  <div className="bg-white bg-opacity-50 rounded p-2 text-center">
+                    <div className="text-muted" style={{ fontSize: '0.7rem' }}>Sin Stock</div>
+                    <div className="fw-bold text-danger fs-5">{resumen.sin_stock}</div>
+                  </div>
                 </div>
-                <div className="text-muted">
-                  Inconsistentes: <span className="fw-bold">{resumen.inconsistentes}</span>
+                <div className="col-6">
+                  <div className="bg-white bg-opacity-50 rounded p-2 text-center">
+                    <div className="text-muted" style={{ fontSize: '0.7rem' }}>Inconsistentes</div>
+                    <div className="fw-bold text-danger fs-5">{resumen.inconsistentes}</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="col-md-4">
-          <div className="card border-0 shadow-sm bg-warning bg-opacity-10">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="text-warning me-3">
-                  <ExclamationTriangle size={24} />
+        <div className="col-12 col-md-4">
+          <div className="card border-0 shadow-sm bg-warning bg-opacity-10 h-100">
+            <div className="card-body p-3 p-md-4">
+              <div className="d-flex align-items-center mb-3">
+                <div className="text-warning me-3" style={{ fontSize: '1.5rem' }}>
+                  <ExclamationTriangle size={28} />
                 </div>
-                <div>
-                  <p className="text-muted small mb-0">Advertencias</p>
-                  <h3 className="mb-0 fw-bold text-warning">
+                <div className="flex-grow-1">
+                  <p className="text-muted small mb-1">Advertencias</p>
+                  <h3 className="mb-0 fw-bold text-warning" style={{ fontSize: '1.8rem' }}>
                     {alertas.advertencias}
                   </h3>
                 </div>
               </div>
-              <div className="mt-2 small">
-                <div className="text-muted">
-                  Sin Vincular: <span className="fw-bold">{resumen.sin_vincular}</span>
+              <div className="row g-2 small">
+                <div className="col-6">
+                  <div className="bg-white bg-opacity-50 rounded p-2 text-center">
+                    <div className="text-muted" style={{ fontSize: '0.7rem' }}>Sin Vincular</div>
+                    <div className="fw-bold text-warning fs-5">{resumen.sin_vincular}</div>
+                  </div>
                 </div>
-                <div className="text-muted">
-                  Stock Bajo: <span className="fw-bold">{resumen.stock_bajo}</span>
+                <div className="col-6">
+                  <div className="bg-white bg-opacity-50 rounded p-2 text-center">
+                    <div className="text-muted" style={{ fontSize: '0.7rem' }}>Stock Bajo</div>
+                    <div className="fw-bold text-warning fs-5">{resumen.stock_bajo}</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -176,53 +189,86 @@ export default function EstadoMedicaciones() {
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="card border-0 shadow-sm mb-4">
-        <div className="card-body">
-          <div className="btn-group w-100" role="group">
-            <button
-              className={`btn ${filtro === "todos" ? "btn-primary" : "btn-outline-primary"}`}
-              onClick={() => setFiltro("todos")}
+      {/* Filtros - Optimizados para Mobile */}
+      <div className="card border-0 shadow-sm mb-4 overflow-hidden">
+        <div className="card-body p-3">
+          {/* Desktop: Botones horizontales */}
+          <div className="d-none d-lg-flex overflow-auto pb-1 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="btn-group flex-nowrap" role="group">
+              <button
+                className={`btn text-nowrap ${filtro === "todos" ? "btn-primary" : "btn-outline-primary"}`}
+                onClick={() => setFiltro("todos")}
+              >
+                Todas las Alertas ({alertas.criticas + alertas.advertencias})
+              </button>
+              <button
+                className={`btn text-nowrap ${filtro === "sin_stock" ? "btn-danger" : "btn-outline-danger"}`}
+                onClick={() => setFiltro("sin_stock")}
+              >
+                Sin Stock ({resumen.sin_stock})
+              </button>
+              <button
+                className={`btn text-nowrap ${filtro === "stock_bajo" ? "btn-warning" : "btn-outline-warning"}`}
+                onClick={() => setFiltro("stock_bajo")}
+              >
+                Stock Bajo ({resumen.stock_bajo})
+              </button>
+              <button
+                className={`btn text-nowrap ${filtro === "sin_vincular" ? "btn-info" : "btn-outline-info"}`}
+                onClick={() => setFiltro("sin_vincular")}
+              >
+                Sin Vincular ({resumen.sin_vincular})
+              </button>
+              <button
+                className={`btn text-nowrap ${filtro === "inconsistentes" ? "btn-danger" : "btn-outline-danger"}`}
+                onClick={() => setFiltro("inconsistentes")}
+              >
+                Inconsistentes ({resumen.inconsistentes})
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile: Dropdown compacto */}
+          <div className="d-lg-none">
+            <label className="form-label small text-uppercase fw-bold text-muted mb-2">
+              <i className="bi bi-funnel me-2"></i>
+              Filtrar por:
+            </label>
+            <select
+              className="form-select shadow-sm"
+              value={filtro}
+              onChange={(e) => setFiltro(e.target.value)}
             >
-              Todas las Alertas ({alertas.criticas + alertas.advertencias})
-            </button>
-            <button
-              className={`btn ${filtro === "sin_stock" ? "btn-danger" : "btn-outline-danger"}`}
-              onClick={() => setFiltro("sin_stock")}
-            >
-              Sin Stock ({resumen.sin_stock})
-            </button>
-            <button
-              className={`btn ${filtro === "stock_bajo" ? "btn-warning" : "btn-outline-warning"}`}
-              onClick={() => setFiltro("stock_bajo")}
-            >
-              Stock Bajo ({resumen.stock_bajo})
-            </button>
-            <button
-              className={`btn ${filtro === "sin_vincular" ? "btn-info" : "btn-outline-info"}`}
-              onClick={() => setFiltro("sin_vincular")}
-            >
-              Sin Vincular ({resumen.sin_vincular})
-            </button>
-            <button
-              className={`btn ${filtro === "inconsistentes" ? "btn-danger" : "btn-outline-danger"}`}
-              onClick={() => setFiltro("inconsistentes")}
-            >
-              Inconsistentes ({resumen.inconsistentes})
-            </button>
+              <option value="todos">
+                Todas las Alertas ({alertas.criticas + alertas.advertencias})
+              </option>
+              <option value="sin_stock">
+                Sin Stock ({resumen.sin_stock})
+              </option>
+              <option value="stock_bajo">
+                Stock Bajo ({resumen.stock_bajo})
+              </option>
+              <option value="sin_vincular">
+                Sin Vincular ({resumen.sin_vincular})
+              </option>
+              <option value="inconsistentes">
+                Inconsistentes ({resumen.inconsistentes})
+              </option>
+            </select>
           </div>
         </div>
       </div>
 
       {/* Tabla de Alertas */}
-      <div className="card border-0 shadow-sm">
+      <div className="card border-0 shadow-sm overflow-hidden">
         <div className="card-header bg-white border-0 py-3 px-4">
           <h5 className="mb-0 fw-bold text-primary">
             Medicaciones que Requieren Atención
           </h5>
         </div>
         <div className="card-body p-0">
-          <div className="table-responsive">
+          {/* Vista Desktop */}
+          <div className="table-responsive d-none d-lg-block">
             <table className="table table-hover mb-0 align-middle">
               <thead className="bg-light">
                 <tr>
@@ -334,45 +380,97 @@ export default function EstadoMedicaciones() {
               </tbody>
             </table>
           </div>
-        </div>
-      </div>
 
-      {/* Acciones Rápidas */}
-      <div className="row g-4 mt-4">
-        <div className="col-md-4">
-          <Link to="/medicamentos/carga" className="card border-0 shadow-sm text-decoration-none hover-lift">
-            <div className="card-body text-center">
-              <div className="text-primary mb-2">
-                <BoxSeam size={32} />
+          {/* Vista Mobile */}
+          <div className="d-lg-none">
+            {medicacionesFiltradas().length > 0 ? (
+              <div className="list-group list-group-flush">
+                {medicacionesFiltradas().map((med) => (
+                  <div key={med.id} className="list-group-item p-4 border-bottom">
+                    <div className="d-flex justify-content-between align-items-start mb-3">
+                      <div>
+                        <h6 className="fw-bold mb-1">{med.nombre}</h6>
+                        <div className="small text-muted">{med.paciente}</div>
+                      </div>
+                      <div>
+                        {med.estado === "sin_stock" && <span className="badge bg-danger">Sin Stock</span>}
+                        {med.estado === "stock_bajo" && <span className="badge bg-warning text-dark">Stock Bajo</span>}
+                        {med.estado === "sin_vincular" && <span className="badge bg-info">Sin Vincular</span>}
+                        {med.estado === "inconsistente" && <span className="badge bg-danger">Inconsistente</span>}
+                      </div>
+                    </div>
+                    
+                    <div className="row g-2 mb-3">
+                      <div className="col-12">
+                        <div className="small text-muted text-uppercase fw-bold" style={{fontSize: '0.6rem'}}>Problema</div>
+                        <div className="small text-danger">{med.mensaje || med.error_consistencia || "Error desconocido"}</div>
+                      </div>
+                      <div className="col-12">
+                        <div className="small text-muted text-uppercase fw-bold" style={{fontSize: '0.6rem'}}>Sugerencia</div>
+                        <div className="small text-primary fw-medium">{med.sugerencia}</div>
+                      </div>
+                    </div>
+
+                    <div className="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                        <div className="small">
+                          {med.origen_pago === "geriatrico" && <span className="text-success fw-bold">Geriátrico</span>}
+                          {med.origen_pago === "paciente" && <span className="text-warning fw-bold">Paciente</span>}
+                        </div>
+                        {med.estado === "sin_vincular" && (
+                          <Link to="/stock/items" className="btn btn-sm btn-primary">
+                            Configurar Stock
+                          </Link>
+                        )}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <h6 className="fw-bold">Cargar Medicamentos</h6>
-              <small className="text-muted">Asignar medicamentos a pacientes</small>
+            ) : (
+              <div className="text-center py-5">
+                <CheckCircle size={40} className="text-success opacity-25 mb-2" />
+                <p className="text-muted">Sin alertas</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+      {/* Acciones Rápidas - Optimizado Mobile */}
+      <div className="row g-3 g-md-4 mt-3 mt-md-4">
+        <div className="col-12 col-sm-6 col-md-4">
+          <Link to="/medicamentos/carga" className="card border-0 shadow-sm text-decoration-none hover-lift h-100">
+            <div className="card-body p-3 p-md-4 text-center">
+              <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '60px', height: '60px' }}>
+                <BoxSeam size={28} className="text-primary" />
+              </div>
+              <h6 className="fw-bold mb-2 text-dark">Cargar Medicamentos</h6>
+              <small className="text-muted d-block">Asignar medicamentos a pacientes</small>
             </div>
           </Link>
         </div>
-        <div className="col-md-4">
-          <Link to="/stock/items" className="card border-0 shadow-sm text-decoration-none hover-lift">
-            <div className="card-body text-center">
-              <div className="text-success mb-2">
-                <BoxSeam size={32} />
+        <div className="col-12 col-sm-6 col-md-4">
+          <Link to="/stock/items" className="card border-0 shadow-sm text-decoration-none hover-lift h-100">
+            <div className="card-body p-3 p-md-4 text-center">
+              <div className="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '60px', height: '60px' }}>
+                <BoxSeam size={28} className="text-success" />
               </div>
-              <h6 className="fw-bold">Gestionar Stock</h6>
-              <small className="text-muted">Crear y administrar items de stock</small>
+              <h6 className="fw-bold mb-2 text-dark">Gestionar Stock</h6>
+              <small className="text-muted d-block">Crear y administrar items de stock</small>
             </div>
           </Link>
         </div>
-        <div className="col-md-4">
-          <Link to="/stock/reportes" className="card border-0 shadow-sm text-decoration-none hover-lift">
-            <div className="card-body text-center">
-              <div className="text-info mb-2">
-                <BoxSeam size={32} />
+        <div className="col-12 col-sm-6 col-md-4">
+          <Link to="/stock/reportes" className="card border-0 shadow-sm text-decoration-none hover-lift h-100">
+            <div className="card-body p-3 p-md-4 text-center">
+              <div className="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '60px', height: '60px' }}>
+                <BoxSeam size={28} className="text-info" />
               </div>
-              <h6 className="fw-bold">Ver Reportes</h6>
-              <small className="text-muted">Análisis de costos y consumo</small>
+              <h6 className="fw-bold mb-2 text-dark">Ver Reportes</h6>
+              <small className="text-muted d-block">Análisis de costos y consumo</small>
             </div>
           </Link>
         </div>
       </div>
     </div>
+  </div>
   );
 }

@@ -3,35 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Models\RegistroMedicacion;
+use App\Http\Requests\StoreRegistroMedicacionRequest;
+use App\Http\Requests\UpdateRegistroMedicacionRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 
 class RegistroMedicacionController extends Controller
 {
     public function index()
     {
-        // Traemos la medicación y el paciente asociado, y el usuario que registró
-        $registros = RegistroMedicacion::with(['medicacion.paciente', 'user'])
+        Gate::authorize('viewAny', RegistroMedicacion::class);
+        return RegistroMedicacion::with(['medicacion.paciente', 'user'])
             ->orderBy('fecha_hora', 'desc')
-            ->get();
-        return response()->json($registros);
+            ->paginate(15);
     }
 
-    public function store(Request $request)
+    public function store(StoreRegistroMedicacionRequest $request)
     {
-        $validated = $request->validate([
-            'medicacion_id' => 'required|exists:medicacions,id',
-            'fecha_hora' => 'required|date',
-            'estado' => 'required|in:administrado,rechazado,suspendido,error',
-            'observaciones' => 'nullable|string',
-            'user_id' => 'nullable|exists:users,id',
-        ]);
+        Gate::authorize('create', RegistroMedicacion::class);
+        $validated = $request->validated();
 
-        if (empty($validated['user_id']) && $request->user()) {
-            $validated['user_id'] = $request->user()->id;
+        if (empty($validated['user_id'])) {
+            $validated['user_id'] = auth()->id();
         }
 
         try {
-            return \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request) {
+            return DB::transaction(function () use ($validated) {
                 $medicacion = \App\Models\Medicacion::findOrFail($validated['medicacion_id']);
                 
                 // Validación estricta de Stock para estado 'administrado'
@@ -137,17 +135,12 @@ class RegistroMedicacionController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateRegistroMedicacionRequest $request, $id)
     {
         $registro = RegistroMedicacion::findOrFail($id);
+        Gate::authorize('update', $registro);
 
-        $validated = $request->validate([
-            'medicacion_id' => 'sometimes|exists:medicacions,id',
-            'fecha_hora' => 'sometimes|date',
-            'estado' => 'sometimes|in:administrado,rechazado,suspendido,error',
-            'observaciones' => 'nullable|string',
-            'user_id' => 'nullable|exists:users,id',
-        ]);
+        $validated = $request->validated();
 
         // Si cambia a administrado desde otro estado, validar y descontar stock
         if (isset($validated['estado']) && $validated['estado'] === 'administrado' && $registro->estado !== 'administrado') {
@@ -233,8 +226,9 @@ class RegistroMedicacionController extends Controller
     public function destroy($id)
     {
         $registro = RegistroMedicacion::findOrFail($id);
+        Gate::authorize('delete', $registro);
+        
         $registro->delete();
-
-        return response()->json(['message' => 'Registro eliminado correctamente']);
+        return response()->noContent();
     }
 }

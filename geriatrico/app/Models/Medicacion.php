@@ -32,4 +32,8 @@ class Medicacion extends Model
      public function stockItem() {
         return $this->belongsTo(StockItem::class);
      }
+
+     public function registros() {
+        return $this->hasMany(RegistroMedicacion::class);
+     }
 }

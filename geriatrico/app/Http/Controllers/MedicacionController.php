@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Medicacion;
+use App\Http\Requests\StoreMedicacionRequest;
+use App\Http\Requests\UpdateMedicacionRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class MedicacionController extends Controller
 {
@@ -12,7 +15,8 @@ class MedicacionController extends Controller
      */
     public function index()
     {
-        return Medicacion::with(['paciente', 'stockItem'])->get();
+        Gate::authorize('viewAny', Medicacion::class);
+        return Medicacion::with(['paciente', 'stockItem'])->paginate(15);
     }
 
     /**
@@ -149,45 +153,10 @@ class MedicacionController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreMedicacionRequest $request)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'paciente_id' => 'required|exists:pacientes,id',
-            'tipo' => 'in:diaria,sos',
-            'cantidad_mensual' => 'nullable|integer',
-            'fecha_inicio' => 'nullable|date',
-            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
-            'origen_pago' => 'required|in:obra_social,geriatrico,paciente',
-            'stock_item_id' => 'nullable|exists:stock_items,id',
-        ]);
-
-        // Si el origen es geriátrico, validar que haya stock disponible
-        if ($request->origen_pago === 'geriatrico' && $request->stock_item_id) {
-            $stockItem = \App\Models\StockItem::find($request->stock_item_id);
-            
-            if ($stockItem && $stockItem->propiedad !== 'geriatrico') {
-                return response()->json([
-                    'error' => 'El item de stock seleccionado no pertenece al geriátrico'
-                ], 400);
-            }
-        }
-
-        // Si el origen es paciente, validar que el stock sea del paciente
-        if ($request->origen_pago === 'paciente' && $request->stock_item_id) {
-            $stockItem = \App\Models\StockItem::find($request->stock_item_id);
-            
-            if ($stockItem && $stockItem->paciente_propietario_id != $request->paciente_id) {
-                return response()->json([
-                    'error' => 'El item de stock seleccionado no pertenece al paciente'
-                ], 400);
-            }
-        }
-
-        $medicacion = Medicacion::create($request->all());
+        Gate::authorize('create', Medicacion::class);
+        $medicacion = Medicacion::create($request->validated());
         return response()->json($medicacion, 201);
     }
 
@@ -256,63 +225,12 @@ class MedicacionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-     public function update(Request $request, $id)
+     public function update(UpdateMedicacionRequest $request, $id)
     {
-        $validated = $request->validate([
-            'nombre' => 'sometimes|required|string|max:255',
-            'dosis' => 'nullable|string',
-            'frecuencia' => 'nullable|string',
-            'observaciones' => 'nullable|string',
-            'paciente_id' => 'sometimes|required|exists:pacientes,id',
-            'tipo' => 'sometimes|in:diaria,sos',
-            'cantidad_mensual' => 'nullable|integer|min:0',
-            'fecha_inicio' => 'nullable|date',
-            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
-            'origen_pago' => 'sometimes|required|in:obra_social,geriatrico,paciente',
-            'stock_item_id' => 'nullable|exists:stock_items,id',
-        ]);
-
         $medicacion = Medicacion::findOrFail($id);
-
-        // Obtener valores actuales o nuevos para validación
-        $origenPago = $validated['origen_pago'] ?? $medicacion->origen_pago;
-        $stockItemId = $validated['stock_item_id'] ?? $medicacion->stock_item_id;
-        $pacienteId = $validated['paciente_id'] ?? $medicacion->paciente_id;
-
-        // Si hay stock vinculado, validar consistencia de propiedad
-        if ($stockItemId && $origenPago !== 'obra_social') {
-            $stockItem = \App\Models\StockItem::find($stockItemId);
-
-            if (!$stockItem) {
-                return response()->json([
-                    'error' => 'El item de stock vinculado no existe'
-                ], 400);
-            }
-
-            // Validar origen geriátrico
-            if ($origenPago === 'geriatrico' && $stockItem->propiedad !== 'geriatrico') {
-                return response()->json([
-                    'error' => 'El item de stock seleccionado no pertenece al geriátrico'
-                ], 400);
-            }
-
-            // Validar origen paciente
-            if ($origenPago === 'paciente') {
-                if ($stockItem->propiedad !== 'paciente') {
-                    return response()->json([
-                        'error' => 'El item de stock debe tener propiedad "paciente" para medicamentos de paciente'
-                    ], 400);
-                }
-
-                if ($stockItem->paciente_propietario_id != $pacienteId) {
-                    return response()->json([
-                        'error' => 'El item de stock seleccionado no pertenece al paciente asignado'
-                    ], 400);
-                }
-            }
-        }
-
-        $medicacion->update($validated);
+        Gate::authorize('update', $medicacion);
+        
+        $medicacion->update($request->validated());
         return response()->json($medicacion->load(['paciente', 'stockItem']));
     }
 
@@ -321,7 +239,10 @@ class MedicacionController extends Controller
      */
     public function destroy($id)
     {
-         Medicacion::findOrFail($id)->delete();
+         $medicacion = Medicacion::findOrFail($id);
+         Gate::authorize('delete', $medicacion);
+         
+         $medicacion->delete();
         return response()->noContent();
     }
 }

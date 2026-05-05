@@ -13,7 +13,7 @@ class HabitacionController extends Controller
     public function index()
     {
         $habitaciones = Habitacion::withCount(['cama as camas_totales', 'camasOcupadas as camas_ocupadas'])
-            ->get();
+            ->paginate(15);
 
         return response()->json($habitaciones, 200);
     }

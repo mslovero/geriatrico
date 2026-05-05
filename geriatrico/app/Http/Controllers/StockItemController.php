@@ -4,15 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\StockItem;
 use App\Models\MovimientoStock;
+use App\Http\Requests\StoreStockItemRequest;
+use App\Http\Requests\UpdateStockItemRequest;
+use App\Http\Traits\LogsStockActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Http\Traits\LogsStockActions;
+use Illuminate\Support\Facades\Gate;
 
 class StockItemController extends Controller
 {
     use LogsStockActions;
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', StockItem::class);
         $query = StockItem::with('proveedor', 'pacientePropietario');
 
         // Filtrar por propiedad (geriatrico o paciente)
@@ -30,63 +34,20 @@ class StockItemController extends Controller
             $query->where('activo', $request->activo);
         }
 
-        return $query->get();
+        // Paginación: por defecto 15 items por página
+        // Permitir obtener todos si se pasa ?all=true (para selectores)
+        if ($request->boolean('all')) {
+            return $query->get();
+        }
+
+        $perPage = $request->get('per_page', 15);
+        return $query->paginate($perPage);
     }
 
-    public function store(Request $request)
+    public function store(StoreStockItemRequest $request)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'tipo' => 'required|in:medicamento,insumo',
-            'unidad_medida' => 'required|string',
-            'stock_actual' => 'required|integer|min:0',
-            'stock_minimo' => 'required|integer|min:0',
-            'stock_maximo' => 'nullable|integer|min:0',
-            'fecha_vencimiento_inicial' => 'nullable|date|after:today',
-            'unidad_presentacion' => 'nullable|string|max:50',
-            'factor_conversion' => 'nullable|integer|min:2',
-            'descripcion_presentacion' => 'nullable|string|max:255',
-            'propiedad' => 'required|in:geriatrico,paciente',
-            'paciente_propietario_id' => 'nullable|exists:pacientes,id',
-            'precio_unitario' => 'nullable|numeric|min:0',
-            'proveedor_id' => 'nullable|exists:proveedores,id',
-            'codigo' => 'nullable|string|max:100',
-            'descripcion' => 'nullable|string',
-            'observaciones' => 'nullable|string',
-            'categoria' => 'nullable|string|max:100',
-            'punto_reorden' => 'nullable|integer|min:0',
-            'ubicacion_almacen' => 'nullable|string|max:100',
-            'codigo_barras' => 'nullable|string|max:100',
-            'requiere_receta' => 'nullable|boolean',
-            'temperatura_almacenamiento' => 'nullable|string|max:100',
-        ]);
-
-        // Validar que si tiene unidad_presentacion, debe tener factor_conversion
-        if (!empty($validated['unidad_presentacion']) && empty($validated['factor_conversion'])) {
-            return response()->json([
-                'error' => 'Si especifica unidad de presentación, debe proporcionar un factor de conversión mayor o igual a 2'
-            ], 400);
-        }
-
-        // Validar consistencia de propiedad y paciente propietario
-        if ($validated['propiedad'] === 'paciente' && empty($validated['paciente_propietario_id'])) {
-            return response()->json([
-                'error' => 'Los items con propiedad "paciente" deben tener un paciente propietario asignado'
-            ], 400);
-        }
-
-        if ($validated['propiedad'] === 'geriatrico' && !empty($validated['paciente_propietario_id'])) {
-            return response()->json([
-                'error' => 'Los items con propiedad "geriátrico" no deben tener paciente propietario'
-            ], 400);
-        }
-
-        // Validar que stock_maximo sea mayor que stock_minimo
-        if (isset($validated['stock_maximo']) && $validated['stock_maximo'] < $validated['stock_minimo']) {
-            return response()->json([
-                'error' => 'El stock máximo debe ser mayor o igual al stock mínimo'
-            ], 400);
-        }
+        Gate::authorize('create', StockItem::class);
+        $validated = $request->validated();
 
         return DB::transaction(function () use ($validated) {
             $stockItem = StockItem::create(collect($validated)->except(['fecha_vencimiento_inicial'])->toArray());
@@ -133,71 +94,12 @@ class StockItemController extends Controller
         return StockItem::with(['proveedor', 'movimientos.paciente', 'movimientos.user'])->findOrFail($id);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateStockItemRequest $request, $id)
     {
-        $validated = $request->validate([
-            'nombre' => 'sometimes|required|string|max:255',
-            'tipo' => 'sometimes|required|in:medicamento,insumo',
-            'codigo' => 'nullable|string|max:100',
-            'descripcion' => 'nullable|string',
-            'unidad_medida' => 'sometimes|required|string|max:50',
-            'unidad_presentacion' => 'nullable|string|max:50',
-            'factor_conversion' => 'nullable|integer|min:2',
-            'descripcion_presentacion' => 'nullable|string|max:255',
-            'stock_minimo' => 'sometimes|required|integer|min:0',
-            'stock_maximo' => 'nullable|integer|min:0',
-            'precio_unitario' => 'nullable|numeric|min:0',
-            'proveedor_id' => 'nullable|exists:proveedores,id',
-            'observaciones' => 'nullable|string',
-            'categoria' => 'nullable|string|max:100',
-            'punto_reorden' => 'nullable|integer|min:0',
-            'ubicacion_almacen' => 'nullable|string|max:100',
-            'codigo_barras' => 'nullable|string|max:100',
-            'requiere_receta' => 'nullable|boolean',
-            'temperatura_almacenamiento' => 'nullable|string|max:100',
-            'propiedad' => 'sometimes|required|in:geriatrico,paciente',
-            'paciente_propietario_id' => 'nullable|exists:pacientes,id',
-            'activo' => 'nullable|boolean',
-        ]);
-
         $stockItem = StockItem::findOrFail($id);
-
-        // Validar que si tiene unidad_presentacion, debe tener factor_conversion
-        if (isset($validated['unidad_presentacion']) && !empty($validated['unidad_presentacion'])) {
-            $factorConversion = $validated['factor_conversion'] ?? $stockItem->factor_conversion;
-
-            if (!$factorConversion || $factorConversion < 2) {
-                return response()->json([
-                    'error' => 'Si especifica unidad de presentación, debe proporcionar un factor de conversión mayor o igual a 2'
-                ], 400);
-            }
-        }
-
-        // Validar consistencia de propiedad y paciente propietario
-        $propiedad = $validated['propiedad'] ?? $stockItem->propiedad;
-        $pacientePropietarioId = $validated['paciente_propietario_id'] ?? $stockItem->paciente_propietario_id;
-
-        if ($propiedad === 'paciente' && !$pacientePropietarioId) {
-            return response()->json([
-                'error' => 'Los items con propiedad "paciente" deben tener un paciente propietario asignado'
-            ], 400);
-        }
-
-        if ($propiedad === 'geriatrico' && $pacientePropietarioId) {
-            return response()->json([
-                'error' => 'Los items con propiedad "geriátrico" no deben tener paciente propietario'
-            ], 400);
-        }
-
-        // Validar que stock_maximo sea mayor que stock_minimo si ambos están presentes
-        $stockMinimo = $validated['stock_minimo'] ?? $stockItem->stock_minimo;
-        $stockMaximo = $validated['stock_maximo'] ?? $stockItem->stock_maximo;
-
-        if ($stockMaximo && $stockMinimo && $stockMaximo < $stockMinimo) {
-            return response()->json([
-                'error' => 'El stock máximo debe ser mayor o igual al stock mínimo'
-            ], 400);
-        }
+        Gate::authorize('update', $stockItem);
+        
+        $validated = $request->validated();
 
         // Detectar cambio de propiedad (crítico)
         if (isset($validated['propiedad']) && $validated['propiedad'] !== $stockItem->propiedad) {
@@ -219,6 +121,7 @@ class StockItemController extends Controller
     public function destroy($id)
     {
         $stockItem = StockItem::findOrFail($id);
+        Gate::authorize('delete', $stockItem);
 
         // Logging de auditoría antes de eliminar
         $this->logStockItemDeleted($stockItem);

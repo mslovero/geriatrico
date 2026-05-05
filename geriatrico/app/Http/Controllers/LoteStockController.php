@@ -5,15 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\LoteStock;
 use App\Models\StockItem;
 use App\Models\MovimientoStock;
+use App\Http\Requests\StoreLoteStockRequest;
+use App\Http\Requests\UpdateLoteStockRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class LoteStockController extends Controller
 {
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', LoteStock::class);
         $query = LoteStock::with('stockItem');
-
+        
         if ($request->has('stock_item_id')) {
             $query->where('stock_item_id', $request->stock_item_id);
         }
@@ -22,21 +26,20 @@ class LoteStockController extends Controller
             $query->where('estado', $request->estado);
         }
 
-        return $query->orderBy('fecha_vencimiento', 'asc')->get();
+        $query->orderBy('fecha_vencimiento', 'asc');
+
+        if ($request->boolean('all')) {
+            return $query->get();
+        }
+
+        $perPage = $request->get('per_page', 15);
+        return $query->paginate($perPage);
     }
 
-    public function store(Request $request)
+    public function store(StoreLoteStockRequest $request)
     {
-        $validated = $request->validate([
-            'stock_item_id' => 'required|exists:stock_items,id',
-            'numero_lote' => 'required|string|max:100',
-            'fecha_vencimiento' => 'required|date|after:today',
-            'cantidad_inicial' => 'required|integer|min:1',
-            'tipo_cantidad' => 'nullable|in:base,presentacion',
-            'precio_compra' => 'nullable|numeric|min:0',
-            'proveedor_factura' => 'nullable|string|max:255',
-            'observaciones' => 'nullable|string',
-        ]);
+        Gate::authorize('create', LoteStock::class);
+        $validated = $request->validated();
 
         return DB::transaction(function () use ($validated) {
             $stockItem = StockItem::findOrFail($validated['stock_item_id']);
@@ -96,19 +99,12 @@ class LoteStockController extends Controller
         return LoteStock::with('stockItem')->findOrFail($id);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateLoteStockRequest $request, $id)
     {
-        $validated = $request->validate([
-            'numero_lote' => 'sometimes|required|string|max:100',
-            'fecha_vencimiento' => 'sometimes|required|date',
-            'cantidad_actual' => 'sometimes|required|integer|min:0',
-            'precio_compra' => 'nullable|numeric|min:0',
-            'proveedor_factura' => 'nullable|string|max:255',
-            'observaciones' => 'nullable|string',
-            'estado' => 'sometimes|required|in:activo,vencido,agotado',
-        ]);
-
         $lote = LoteStock::findOrFail($id);
+        Gate::authorize('update', $lote);
+
+        $validated = $request->validated();
 
         // Validar que cantidad_actual no sea mayor a cantidad_inicial
         $cantidadActual = $validated['cantidad_actual'] ?? $lote->cantidad_actual;
@@ -134,6 +130,8 @@ class LoteStockController extends Controller
     public function destroy($id)
     {
         $lote = LoteStock::findOrFail($id);
+        Gate::authorize('delete', $lote);
+        
         $stockItem = $lote->stockItem;
         
         $lote->delete();

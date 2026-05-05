@@ -32,7 +32,7 @@ class MovimientoStockController extends Controller
             $query->whereDate('created_at', '<=', $request->fecha_hasta);
         }
 
-        return $query->orderBy('created_at', 'desc')->get();
+        return $query->orderBy('created_at', 'desc')->paginate(15);
     }
 
     public function show($id)
@@ -46,7 +46,7 @@ class MovimientoStockController extends Controller
         return MovimientoStock::with(['stockItem', 'user'])
             ->where('paciente_id', $pacienteId)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(15);
     }
 
     // Reporte de consumo por período

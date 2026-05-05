@@ -169,8 +169,8 @@ export default function Login() {
         className="position-absolute bottom-0 w-100 text-center pb-3 text-muted small"
         style={{ zIndex: 1 }}
       >
-        &copy; {new Date().getFullYear()} Geriátrico Manager. Todos los derechos
-        reservados.
+        &copy; {new Date().getFullYear()} Recidencia para Adultos Mayores. Todos
+        los derechos reservados.
       </div>
     </div>
   );

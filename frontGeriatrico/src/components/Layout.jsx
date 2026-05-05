@@ -5,6 +5,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "./ThemeToggle";
 import useNotifications from "../hooks/useNotifications";
+import usePushNotifications from "../hooks/usePushNotifications";
 
 const Layout = () => {
   const location = useLocation();
@@ -26,21 +27,26 @@ const Layout = () => {
   } = useNotifications(30000); // Polling cada 30 segundos
 
   const { logout, user } = useAuth();
+  const { isSubscribed, subscribeUser, unsubscribeUser } =
+    usePushNotifications();
 
   // Cerrar dropdown de notificaciones al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
         setShowNotifications(false);
       }
     };
 
     if (showNotifications) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showNotifications]);
 
@@ -122,7 +128,9 @@ const Layout = () => {
             >
               <i className="bi bi-hospital-fill fs-5"></i>
             </div>
-            <span className="fs-5 fw-bold tracking-tight">Geriátrico</span>
+            <span className="fs-5 fw-bold tracking-tight">
+              Recidencia para Adultos
+            </span>
           </Link>
           <button
             className="btn btn-link text-white-50 d-md-none p-0"
@@ -214,15 +222,16 @@ const Layout = () => {
         <header className="bg-surface shadow-sm py-3 px-4 d-flex align-items-center justify-content-between sticky-top z-1020">
           <div className="d-flex align-items-center">
             <button
-              className="btn btn-light border-0 shadow-sm me-3 text-primary"
+              className="btn btn-light border-0 shadow-sm me-2 me-md-3 text-primary"
               style={{ width: "40px", height: "40px", borderRadius: "10px" }}
               onClick={() => setIsNavOpen(!isNavOpen)}
             >
               <i className="bi bi-list fs-5"></i>
             </button>
-            <h5 className="m-0 fw-bold text-gradient">
+            <h5 className="m-0 fw-bold text-gradient d-none d-sm-block">
               Sistema de Gestión Integral
             </h5>
+            <h5 className="m-0 fw-bold text-gradient d-sm-none">Geriátrico</h5>
           </div>
 
           <div className="d-flex align-items-center gap-3">
@@ -239,6 +248,23 @@ const Layout = () => {
             </div>
             <div className="vr d-none d-md-block mx-2"></div>
             <ThemeToggle />
+
+            {/* Botón de Suscripción Push */}
+            <button
+              className={`btn btn-light border-0 shadow-sm rounded-circle me-1 ${isSubscribed ? "text-success" : "text-muted"}`}
+              style={{ width: "40px", height: "40px" }}
+              onClick={isSubscribed ? unsubscribeUser : subscribeUser}
+              title={
+                isSubscribed
+                  ? "Notificaciones Push Activas"
+                  : "Activar Notificaciones Push"
+              }
+            >
+              <i
+                className={`bi ${isSubscribed ? "bi-broadcast-pin" : "bi-broadcast"}`}
+              ></i>
+            </button>
+
             <div className="position-relative" ref={notificationRef}>
               <button
                 className="btn btn-light border-0 shadow-sm rounded-circle position-relative"
@@ -248,12 +274,14 @@ const Layout = () => {
               >
                 <i className="bi bi-bell"></i>
                 {totalNoLeidas > 0 && (
-                  <span 
+                  <span
                     className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                    style={{ fontSize: '0.65rem', minWidth: '18px' }}
+                    style={{ fontSize: "0.65rem", minWidth: "18px" }}
                   >
-                    {totalNoLeidas > 99 ? '99+' : totalNoLeidas}
-                    <span className="visually-hidden">notificaciones nuevas</span>
+                    {totalNoLeidas > 99 ? "99+" : totalNoLeidas}
+                    <span className="visually-hidden">
+                      notificaciones nuevas
+                    </span>
                   </span>
                 )}
               </button>
@@ -261,17 +289,35 @@ const Layout = () => {
               {showNotifications && (
                 <div
                   className="position-absolute end-0 mt-2 rounded-3 shadow-xl border overflow-hidden fade-in"
-                  style={{ width: "360px", zIndex: 1050, top: "100%", backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)' }}
+                  style={{
+                    width: "360px",
+                    zIndex: 1050,
+                    top: "100%",
+                    backgroundColor: "var(--bg-surface)",
+                    borderColor: "var(--border-color)",
+                  }}
                 >
-                  <div className="p-3 border-bottom d-flex justify-content-between align-items-center" style={{ backgroundColor: 'var(--bg-muted)', borderColor: 'var(--border-color)' }}>
-                    <h6 className="m-0 fw-bold" style={{ color: 'var(--text-primary)' }}>Notificaciones</h6>
+                  <div
+                    className="p-3 border-bottom d-flex justify-content-between align-items-center"
+                    style={{
+                      backgroundColor: "var(--bg-muted)",
+                      borderColor: "var(--border-color)",
+                    }}
+                  >
+                    <h6
+                      className="m-0 fw-bold"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      Notificaciones
+                    </h6>
                     <div className="d-flex align-items-center gap-2">
                       {totalNoLeidas > 0 && (
                         <>
                           <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill">
-                            {totalNoLeidas} Nueva{totalNoLeidas !== 1 ? 's' : ''}
+                            {totalNoLeidas} Nueva
+                            {totalNoLeidas !== 1 ? "s" : ""}
                           </span>
-                          <button 
+                          <button
                             className="btn btn-link btn-sm text-primary p-0"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -285,29 +331,37 @@ const Layout = () => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div
                     className="list-group list-group-flush"
                     style={{ maxHeight: "350px", overflowY: "auto" }}
                   >
                     {loadingNotificaciones ? (
                       <div className="p-4 text-center">
-                        <div className="spinner-border spinner-border-sm text-primary" role="status">
+                        <div
+                          className="spinner-border spinner-border-sm text-primary"
+                          role="status"
+                        >
                           <span className="visually-hidden">Cargando...</span>
                         </div>
                       </div>
                     ) : notificaciones.length > 0 ? (
                       notificaciones.slice(0, 10).map((notif) => {
-                        const colorClass = getColorClass(notif.tipo, notif.color);
+                        const colorClass = getColorClass(
+                          notif.tipo,
+                          notif.color,
+                        );
                         const iconoClass = getIcono(notif.tipo, notif.icono);
-                        
+
                         return (
                           <div
                             key={notif.id}
-                            className={`list-group-item list-group-item-action p-3 ${!notif.leida ? 'border-start border-primary border-3' : ''}`}
-                            style={{ 
-                              cursor: 'pointer',
-                              backgroundColor: !notif.leida ? 'var(--bg-hover)' : 'transparent'
+                            className={`list-group-item list-group-item-action p-3 ${!notif.leida ? "border-start border-primary border-3" : ""}`}
+                            style={{
+                              cursor: "pointer",
+                              backgroundColor: !notif.leida
+                                ? "var(--bg-hover)"
+                                : "transparent",
                             }}
                             onClick={() => {
                               if (!notif.leida) {
@@ -320,38 +374,56 @@ const Layout = () => {
                             }}
                           >
                             <div className="d-flex align-items-start">
-                              <div 
+                              <div
                                 className={`bg-${colorClass} bg-opacity-10 text-${colorClass} rounded-circle p-2 me-3 d-flex align-items-center justify-content-center`}
-                                style={{ width: '36px', height: '36px', minWidth: '36px' }}
+                                style={{
+                                  width: "36px",
+                                  height: "36px",
+                                  minWidth: "36px",
+                                }}
                               >
                                 <i className={`bi ${iconoClass}`}></i>
                               </div>
                               <div className="flex-grow-1 overflow-hidden">
-                                <p className="mb-1 small fw-bold" style={{ color: 'var(--text-primary)' }}>
+                                <p
+                                  className="mb-1 small fw-bold"
+                                  style={{ color: "var(--text-primary)" }}
+                                >
                                   {notif.titulo}
                                 </p>
-                                <p 
-                                  className="mb-1 small text-truncate" 
-                                  style={{ color: 'var(--text-secondary)', maxWidth: '250px' }}
+                                <p
+                                  className="mb-1 small text-truncate"
+                                  style={{
+                                    color: "var(--text-secondary)",
+                                    maxWidth: "250px",
+                                  }}
                                   title={notif.mensaje}
                                 >
                                   {notif.mensaje}
                                 </p>
                                 <small
-                                  style={{ fontSize: "0.7rem", color: 'var(--text-muted)' }}
+                                  style={{
+                                    fontSize: "0.7rem",
+                                    color: "var(--text-muted)",
+                                  }}
                                 >
                                   {formatearTiempoRelativo(notif.created_at)}
                                   {notif.paciente && (
                                     <span className="ms-2">
-                                      • {notif.paciente.nombre} {notif.paciente.apellido}
+                                      • {notif.paciente.nombre}{" "}
+                                      {notif.paciente.apellido}
                                     </span>
                                   )}
                                 </small>
                               </div>
                               {!notif.leida && (
-                                <div 
+                                <div
                                   className="bg-primary rounded-circle ms-2"
-                                  style={{ width: '8px', height: '8px', minWidth: '8px' }}
+                                  style={{
+                                    width: "8px",
+                                    height: "8px",
+                                    minWidth: "8px",
+                                  }}
                                   title="No leída"
                                 ></div>
                               )}
@@ -362,13 +434,21 @@ const Layout = () => {
                     ) : (
                       <div className="p-4 text-center">
                         <i className="bi bi-bell-slash fs-1 text-muted mb-2 d-block opacity-50"></i>
-                        <p className="small text-muted mb-0">No hay notificaciones</p>
+                        <p className="small text-muted mb-0">
+                          No hay notificaciones
+                        </p>
                       </div>
                     )}
                   </div>
-                  
+
                   {notificaciones.length > 0 && (
-                    <div className="p-2 text-center border-top" style={{ backgroundColor: 'var(--bg-muted)', borderColor: 'var(--border-color)' }}>
+                    <div
+                      className="p-2 text-center border-top"
+                      style={{
+                        backgroundColor: "var(--bg-muted)",
+                        borderColor: "var(--border-color)",
+                      }}
+                    >
                       <button
                         onClick={() => {
                           marcarTodasLeidas();
@@ -398,7 +478,9 @@ const Layout = () => {
           <div className="d-flex justify-content-between align-items-center">
             <span className="text-muted small">
               &copy; {new Date().getFullYear()}{" "}
-              <span className="fw-bold text-primary">Geriátrico Manager</span>
+              <span className="fw-bold text-primary">
+                Recidencia para Adultos Mayores
+              </span>
             </span>
             <div className="text-muted small d-flex align-items-center">
               <span className="me-1">Hecho con</span>

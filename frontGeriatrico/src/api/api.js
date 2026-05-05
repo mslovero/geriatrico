@@ -12,19 +12,54 @@ const api = axios.create({
   },
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// 🔐 Request interceptor - Añadir token a todas las peticiones
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
-export const get = async (endpoint) => {
+// 🔐 Response interceptor - Manejar tokens expirados y errores
+api.interceptors.response.use(
+  (response) => {
+    // Si la respuesta es exitosa, simplemente la devolvemos
+    return response;
+  },
+  (error) => {
+    // Si el error es 401 (No autenticado) o 419 (Token expirado)
+    if (error.response && (error.response.status === 401 || error.response.status === 419)) {
+      // Limpiar el token del localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      // Mostrar mensaje al usuario
+      console.warn('⚠️ Sesión expirada. Por favor, inicia sesión nuevamente.');
+
+      // Redirigir al login
+      window.location.href = '/login';
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export const get = async (endpoint, config = {}) => {
   try {
-    const response = await api.get(endpoint);
+    const response = await api.get(endpoint, config);
     return response.data;
   } catch (error) {
+    // Si el error es una cancelación, no lo logueamos como error
+    if (axios.isCancel(error)) {
+      console.log("Request canceled:", error.message);
+      return null;
+    }
     console.error("❌ Error en GET:", error);
     throw error;
   }
