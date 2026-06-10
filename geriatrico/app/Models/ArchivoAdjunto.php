@@ -2,19 +2,22 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ArchivoAdjunto extends Model
 {
+    use HasFactory;
 
-    protected $table = "archivos_adjuntos";
-    protected $filiabre = [
+    protected $table = 'archivos_adjuntos';
+
+    protected $fillable = [
         'paciente_id',
         'historial_medico_id',
         'tipo',
-        'rutal_archivo'
-    ];         
-       // 🔹 Relaciones
+        'ruta_archivo',
+    ];
+
     public function paciente()
     {
         return $this->belongsTo(Paciente::class);
@@ -24,5 +27,4 @@ class ArchivoAdjunto extends Model
     {
         return $this->belongsTo(HistorialMedico::class);
     }
-
 }

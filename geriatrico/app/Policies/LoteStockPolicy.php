@@ -26,10 +26,13 @@ class LoteStockPolicy
 
     /**
      * Determine whether the user can create models.
+     * Mismos roles que StockItem: admin, médico y administrativo.
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->role === 'staff';
+        return $user->isAdmin()
+            || $user->role === 'medico'
+            || $user->role === 'administrativo';
     }
 
     /**
@@ -37,7 +40,9 @@ class LoteStockPolicy
      */
     public function update(User $user, LoteStock $loteStock): bool
     {
-        return $user->isAdmin() || $user->role === 'staff';
+        return $user->isAdmin()
+            || $user->role === 'medico'
+            || $user->role === 'administrativo';
     }
 
     /**

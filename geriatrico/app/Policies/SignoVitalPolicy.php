@@ -26,10 +26,14 @@ class SignoVitalPolicy
 
     /**
      * Determine whether the user can create models.
+     * Solo personal clínico: admin, médico o enfermería.
+     * El rol administrativo NO registra signos vitales (no es clínico).
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->role === 'enfermero' || $user->role === 'medico' || $user->role === 'staff';
+        return $user->isAdmin()
+            || $user->role === 'medico'
+            || $user->role === 'enfermero';
     }
 
     /**

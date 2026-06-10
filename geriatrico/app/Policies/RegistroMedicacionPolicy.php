@@ -29,7 +29,9 @@ class RegistroMedicacionPolicy
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->role === 'staff' || $user->role === 'enfermero' || $user->role === 'medico';
+        return $user->isAdmin()
+            || $user->role === 'medico'
+            || $user->role === 'enfermero';
     }
 
     /**

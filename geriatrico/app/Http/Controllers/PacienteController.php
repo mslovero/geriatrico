@@ -2,131 +2,162 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Paciente;
-use App\Models\Notification;
 use App\Http\Requests\StorePacienteRequest;
 use App\Http\Requests\UpdatePacienteRequest;
+use App\Http\Resources\PacienteResource;
+use App\Models\Paciente;
+use App\Services\PacienteService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class PacienteController extends Controller
 {
-    // 🔹 Listar pacientes (paginado)
+    public function __construct(private readonly PacienteService $pacientes)
+    {
+    }
+
     public function index(Request $request)
     {
         Gate::authorize('viewAny', Paciente::class);
-        $query = Paciente::with(['habitacion', 'cama', 'historial_medico', 'medicaciones', 'archivos']);
 
-        // Filtrado por estado si se pasa
-        if ($request->filled('estado')) {
-            $query->where('estado', $request->estado);
-        }
+        $pacientes = Paciente::with(['habitacion', 'cama', 'historial_medico', 'medicaciones', 'archivos'])
+            ->when($request->filled('estado'), fn ($q) => $q->where('estado', $request->estado))
+            ->paginate(15);
 
-        // Paginación
-        $pacientes = $query->paginate(15);
-
-        return response()->json($pacientes);
+        return PacienteResource::collection($pacientes);
     }
 
-    // 🔹 Crear nuevo paciente
     public function store(StorePacienteRequest $request)
     {
         Gate::authorize('create', Paciente::class);
-        $data = $request->validated();
 
-        $paciente = Paciente::create($data);
+        $paciente = $this->pacientes->crear($request->validated());
 
-        // Si se asignó una cama, marcarla como ocupada
-        if (isset($data['cama_id'])) {
-            \App\Models\Cama::where('id', $data['cama_id'])->update(['estado' => 'ocupada']);
-        }
-
-        // Crear notificación de nuevo ingreso
-        try {
-            Notification::create([
-                'tipo' => 'paciente_nuevo',
-                'titulo' => 'Nuevo Ingreso',
-                'mensaje' => "Se ha registrado el paciente {$paciente->nombre} {$paciente->apellido}",
-                'enlace' => "/pacientes/{$paciente->id}/ficha",
-                'paciente_id' => $paciente->id,
-            ]);
-        } catch (\Exception $e) {
-            \Log::warning('No se pudo crear notificación de nuevo paciente: ' . $e->getMessage());
-        }
-
-        return response()->json($paciente, 201);
+        return (new PacienteResource($paciente))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    // 🔹 Mostrar paciente específico
     public function show(Paciente $paciente)
     {
         $paciente->load([
-            'habitacion', 
-            'cama', 
-            'historial_medico', 
-            'medicaciones', 
+            'habitacion',
+            'cama',
+            'historial_medico',
+            'medicaciones',
             'archivos',
             'signosVitales',
             'dietas',
             'incidencias',
-            'turnosMedicos'
+            'turnosMedicos',
         ]);
-        return response()->json($paciente);
+
+        return new PacienteResource($paciente);
     }
 
-    // 🔹 Actualizar paciente
     public function update(UpdatePacienteRequest $request, Paciente $paciente)
     {
         Gate::authorize('update', $paciente);
-        $data = $request->validated();
 
-        // Manejar cambio de cama
-        $camaAnterior = $paciente->cama_id;
+        $actualizado = $this->pacientes->actualizar($paciente, $request->validated());
 
-        $paciente->update($data);
-
-        // Si cambió la cama, actualizar estados
-        if (isset($data['cama_id']) && $data['cama_id'] !== $camaAnterior) {
-            // Liberar cama anterior
-            if ($camaAnterior) {
-                \App\Models\Cama::where('id', $camaAnterior)->update(['estado' => 'libre']);
-            }
-            // Ocupar nueva cama
-            if ($data['cama_id']) {
-                \App\Models\Cama::where('id', $data['cama_id'])->update(['estado' => 'ocupada']);
-            }
-        }
-
-        return response()->json($paciente);
+        return new PacienteResource($actualizado);
     }
 
-    // 🔹 Eliminar paciente (soft delete)
     public function destroy(Paciente $paciente)
     {
         Gate::authorize('delete', $paciente);
+
         $paciente->delete();
+
         return response()->json(['message' => 'Paciente eliminado correctamente.']);
     }
 
-    // 🔹 Exportar Ficha del Paciente a PDF
-    public function exportPdf($id)
+    /**
+     * Exporta la ficha clínica del paciente como PDF.
+     *
+     * Filtros disponibles vía ?periodo=
+     *  - ultima_revision: desde la última entrada del historial médico
+     *  - 30dias (default): últimos 30 días
+     *  - completo: todo el histórico clínico
+     */
+    public function exportPdf(Request $request, $id)
     {
-        $paciente = Paciente::with([
-            'habitacion', 
-            'cama', 
-            'historial_medico', 
-            'medicaciones', 
-            'signosVitales' => fn($q) => $q->orderBy('fecha', 'desc')->limit(10),
-            'incidencias' => fn($q) => $q->orderBy('fecha_hora', 'desc')->limit(10),
-            'turnosMedicos' => fn($q) => $q->where('fecha_hora', '>', now())->orderBy('fecha_hora', 'asc')
-        ])->findOrFail($id);
-
+        $paciente = Paciente::findOrFail($id);
         Gate::authorize('view', $paciente);
 
-        $pdf = Pdf::loadView('pdf.ficha-paciente', compact('paciente'));
-        
-        return $pdf->download("Ficha_{$paciente->nombre}_{$paciente->apellido}.pdf");
+        $periodo = $request->query('periodo', '30dias');
+        if (! in_array($periodo, ['ultima_revision', '30dias', 'completo'], true)) {
+            $periodo = '30dias';
+        }
+
+        [$desde, $periodoLabel] = $this->resolverPeriodo($paciente, $periodo);
+
+        $paciente->load([
+            'habitacion',
+            'cama',
+            'medicaciones.stockItem',
+            'dietas',
+            'turnosMedicos' => fn ($q) => $q
+                ->when($desde, fn ($q2) => $q2->where('fecha_hora', '>=', $desde))
+                ->orderBy('fecha_hora'),
+            'signosVitales' => fn ($q) => $q
+                ->when($desde, fn ($q2) => $q2->where('fecha', '>=', $desde))
+                ->orderByDesc('fecha'),
+            'incidencias' => fn ($q) => $q
+                ->when($desde, fn ($q2) => $q2->where('fecha_hora', '>=', $desde))
+                ->orderByDesc('fecha_hora'),
+            'historial_medico' => fn ($q) => $q
+                ->when($desde, fn ($q2) => $q2->where('fecha', '>=', $desde))
+                ->orderByDesc('fecha'),
+        ]);
+
+        $generadoEn = now();
+
+        $pdf = Pdf::loadView('pdf.ficha-paciente', [
+            'paciente' => $paciente,
+            'periodoLabel' => $periodoLabel,
+            'periodo' => $periodo,
+            'generadoEn' => $generadoEn,
+        ]);
+
+        $nombreArchivo = sprintf(
+            'Ficha_%s_%s_%s.pdf',
+            str_replace(' ', '_', $paciente->nombre),
+            str_replace(' ', '_', $paciente->apellido),
+            $periodo,
+        );
+
+        return $pdf->download($nombreArchivo);
+    }
+
+    /**
+     * Calcula la fecha desde la cual cargar las relaciones según el periodo.
+     *
+     * @return array{0: ?\Carbon\CarbonInterface, 1: string}
+     */
+    private function resolverPeriodo(Paciente $paciente, string $periodo): array
+    {
+        if ($periodo === 'completo') {
+            return [null, 'Histórico completo'];
+        }
+
+        if ($periodo === 'ultima_revision') {
+            $ultima = $paciente->historial_medico()
+                ->orderByDesc('fecha')
+                ->first();
+
+            if ($ultima) {
+                return [
+                    \Carbon\Carbon::parse($ultima->fecha)->startOfDay(),
+                    'Desde la última revisión',
+                ];
+            }
+
+            return [now()->subDays(30), 'Últimos 30 días'];
+        }
+
+        return [now()->subDays(30), 'Últimos 30 días'];
     }
 }

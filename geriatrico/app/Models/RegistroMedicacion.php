@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Models\Medicacion;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class RegistroMedicacion extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'medicacion_id',
         'user_id',

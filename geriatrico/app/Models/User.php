@@ -52,8 +52,17 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    /**
+     * Indica si el usuario forma parte del staff de la residencia.
+     * Cubre TODOS los roles internos. Se usa en las policies para
+     * permitir lectura general (viewAny / view) de datos clínicos.
+     */
     public function isStaff(): bool
     {
-        return in_array($this->role, ['admin', 'staff', 'enfermero', 'medico']);
+        return in_array(
+            $this->role,
+            ['admin', 'staff', 'enfermero', 'medico', 'administrativo'],
+            true,
+        );
     }
 }

@@ -2,21 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Medicacion;
+use App\Http\Requests\StoreBatchMedicacionRequest;
 use App\Http\Requests\StoreMedicacionRequest;
 use App\Http\Requests\UpdateMedicacionRequest;
-use Illuminate\Http\Request;
+use App\Http\Resources\MedicacionResource;
+use App\Models\Medicacion;
+use App\Services\MedicacionService;
 use Illuminate\Support\Facades\Gate;
 
 class MedicacionController extends Controller
 {
+    public function __construct(private readonly MedicacionService $medicaciones)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         Gate::authorize('viewAny', Medicacion::class);
-        return Medicacion::with(['paciente', 'stockItem'])->paginate(15);
+
+        return MedicacionResource::collection(
+            Medicacion::with(['paciente', 'stockItem'])->paginate(15)
+        );
     }
 
     /**
@@ -156,54 +165,26 @@ class MedicacionController extends Controller
     public function store(StoreMedicacionRequest $request)
     {
         Gate::authorize('create', Medicacion::class);
+
         $medicacion = Medicacion::create($request->validated());
-        return response()->json($medicacion, 201);
+
+        return (new MedicacionResource($medicacion))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    public function storeBatch(Request $request)
+    public function storeBatch(StoreBatchMedicacionRequest $request)
     {
-        $request->validate([
-            'paciente_id' => 'required|exists:pacientes,id',
-            'medicamentos' => 'required|array|min:1',
-            'medicamentos.*.nombre' => 'required|string|max:255',
-            'medicamentos.*.dosis' => 'nullable|string',
-            'medicamentos.*.frecuencia' => 'nullable|string',
-            'medicamentos.*.tipo' => 'in:diaria,sos',
-            'medicamentos.*.cantidad_mensual' => 'nullable|integer',
-            'medicamentos.*.fecha_inicio' => 'nullable|date',
-            'medicamentos.*.fecha_fin' => 'nullable|date',
-            'medicamentos.*.origen_pago' => 'required|in:obra_social,geriatrico,paciente',
-            'medicamentos.*.stock_item_id' => 'nullable|exists:stock_items,id',
-        ]);
+        Gate::authorize('create', Medicacion::class);
 
-        $paciente_id = $request->paciente_id;
-        $medicamentos = [];
+        $medicaciones = $this->medicaciones->createBatch(
+            (int) $request->paciente_id,
+            $request->medicamentos,
+        );
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $paciente_id, &$medicamentos) {
-            foreach ($request->medicamentos as $medData) {
-                // Validar origen de pago vs stock
-                if (isset($medData['stock_item_id']) && $medData['stock_item_id']) {
-                    $stockItem = \App\Models\StockItem::find($medData['stock_item_id']);
-                    
-                    if ($stockItem) {
-                        // Si el origen es geriátrico, validar que el stock sea del geriátrico
-                        if ($medData['origen_pago'] === 'geriatrico' && $stockItem->propiedad !== 'geriatrico') {
-                            throw new \Exception('El item de stock "' . $stockItem->nombre . '" no pertenece al geriátrico');
-                        }
-                        
-                        // Si el origen es paciente, validar que el stock sea del paciente
-                        if ($medData['origen_pago'] === 'paciente' && $stockItem->paciente_propietario_id != $paciente_id) {
-                            throw new \Exception('El item de stock "' . $stockItem->nombre . '" no pertenece al paciente');
-                        }
-                    }
-                }
-                
-                $medData['paciente_id'] = $paciente_id;
-                $medicamentos[] = Medicacion::create($medData);
-            }
-        });
-
-        return response()->json($medicamentos, 201);
+        return MedicacionResource::collection($medicaciones)
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -211,7 +192,9 @@ class MedicacionController extends Controller
      */
     public function show($id)
     {
-        return Medicacion::with('paciente')->findOrFail($id);
+        return new MedicacionResource(
+            Medicacion::with(['paciente', 'stockItem'])->findOrFail($id)
+        );
     }
 
     /**
@@ -225,13 +208,14 @@ class MedicacionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-     public function update(UpdateMedicacionRequest $request, $id)
+    public function update(UpdateMedicacionRequest $request, $id)
     {
         $medicacion = Medicacion::findOrFail($id);
         Gate::authorize('update', $medicacion);
-        
+
         $medicacion->update($request->validated());
-        return response()->json($medicacion->load(['paciente', 'stockItem']));
+
+        return new MedicacionResource($medicacion->load(['paciente', 'stockItem']));
     }
 
     /**

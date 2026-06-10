@@ -17,6 +17,10 @@ Route::get('/user', function (Request $request) {
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login'])
     ->middleware('throttle:5,1'); // Máximo 5 intentos de login por minuto
 
+// 🎭 Demo reset (público pero protegido por token + flag DEMO_MODE)
+Route::post('/demo/reset', [App\Http\Controllers\DemoResetController::class, 'reset'])
+    ->middleware('throttle:6,60'); // Máx 6 resets por hora
+
 // 🔐 Todas las rutas protegidas con autenticación
 Route::middleware('auth:sanctum')->group(function () {
 

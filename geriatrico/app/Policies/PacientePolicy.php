@@ -26,18 +26,21 @@ class PacientePolicy
 
     /**
      * Determine whether the user can create models.
+     * Sólo admin y personal administrativo pueden registrar nuevos pacientes.
+     * Los médicos atienden, no admiten. Enfermería tampoco crea pacientes.
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->role === 'staff';
+        return $user->isAdmin() || $user->role === 'administrativo';
     }
 
     /**
      * Determine whether the user can update the model.
+     * Mismo criterio que crear: tarea administrativa, no clínica.
      */
     public function update(User $user, Paciente $paciente): bool
     {
-        return $user->isAdmin() || $user->role === 'staff';
+        return $user->isAdmin() || $user->role === 'administrativo';
     }
 
     /**

@@ -26,10 +26,14 @@ class StockItemPolicy
 
     /**
      * Determine whether the user can create models.
+     * Stock lo gestionan admin, médico (para vincular prescripciones)
+     * y administrativo (para registrar compras e ingresos).
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->role === 'staff';
+        return $user->isAdmin()
+            || $user->role === 'medico'
+            || $user->role === 'administrativo';
     }
 
     /**
@@ -37,7 +41,9 @@ class StockItemPolicy
      */
     public function update(User $user, StockItem $stockItem): bool
     {
-        return $user->isAdmin() || $user->role === 'staff';
+        return $user->isAdmin()
+            || $user->role === 'medico'
+            || $user->role === 'administrativo';
     }
 
     /**
