@@ -16,19 +16,19 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (!id.includes('node_modules')) return undefined
+          if (
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/scheduler/')
+          ) {
+            return 'vendor-react'
+          }
           if (id.includes('react-router')) return 'vendor-router'
           if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts'
           if (id.includes('@tanstack/react-table')) return 'vendor-table'
           if (id.includes('@radix-ui')) return 'vendor-radix'
           if (id.includes('sweetalert2')) return 'vendor-sweetalert'
           if (id.includes('lucide-react')) return 'vendor-icons'
-          if (
-            id.includes('react-dom') ||
-            id.includes('node_modules/react/') ||
-            id.includes('scheduler')
-          ) {
-            return 'vendor-react'
-          }
           return 'vendor'
         },
       },
